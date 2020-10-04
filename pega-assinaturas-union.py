@@ -97,12 +97,16 @@ if __name__ == "__main__":
     mangas_scans = {}
     mangasNomes = []
     mangas_links = []
-    caminho = os.path.dirname(os.path.realpath(__file__))
-    print(caminho)
-    os.system('pause')
+    caminho = os.path.dirname(__file__)
+    rel_chrome_path = os.path.join(caminho,'selenium', 'webdriver','chromedriver.exe')
+    # caminho do executavel do chromedriver
+    chrome_path = resource_path(rel_chrome_path)
+    # print(chrome_path)
     try:
         # criando pasta para salvar arquivos gerados
-        saida = os.mkdir(os.path.join(caminho, 'saida'))
+        saida = os.path.join(caminho, 'saida')
+        if(os.path.isdir):
+            os.mkdir(saida)
     except:
         # se a pasta já tiver criada somente salva o caminho para usar depois
         saida = os.path.join(caminho, 'saida')
@@ -112,14 +116,10 @@ if __name__ == "__main__":
     url_inicial = 'https://unionleitor.top'
     url_login = 'https://unionleitor.top/login'
     url_ass = 'https://unionleitor.top/minhas-assinaturas'
-    resposta = input('Deseja salvar nome das scans? (s/n)')
-    dir = os.path.dirname(__file__)
-    rel_chrome_path = os.path.join(dir,'chromedriver.exe')
-    chrome_path = resource_path(rel_chrome_path)
-    print(chrome_path)
-    
+    print('Caso deseje salvar o nome das scans, o processo pode demorar bastante dependendo de quanto mangás você tem salvo!')
+    resposta = input('Deseja salvar nome das scans? (s/n) ')
     try:
-        with webdriver.Chrome(executable_path=chrome_path,options=optionsChrome()) as driver:
+        with webdriver.Chrome(executable_path=chrome_path,options=optionsChrome(True)) as driver:
             # abre página inicial
             driver.get(url_inicial)
             wait = WebDriverWait(driver, 10)
@@ -188,32 +188,37 @@ if __name__ == "__main__":
                 except Exception as err:
                     print(err)
             if(resposta == 's' or resposta == 'S'):
+                mangaNome = 'Web server is down'
                 for lm in mangas_links:
-                    mangaNome = 'Web server is down'
                     # abre página do mangá enquanto estiver com problema para abrir
                     while mangaNome == 'Web server is down':
                         driver.get(lm)
                         html = driver.page_source
                         site = soup(markup=html)
                         mangaNome = site.find('h2').text
+                    print('Visitando mangá: {}'.format(mangaNome))
                     # verifica se existe o elemento com nome da scan
                     if(site.find('div', class_='text-right')):
                         elmnt = site.find('div', class_='text-right')
                         scans = {x.string:x.get('href') for x in elmnt.find_all('a')}
                         mangas_scans.update({mangaNome: scans})
-            print()
+                    # break
     except Exception as err:
         print(err)
         os.system('pause')
-    # salva arquivo de com os mangás e suas scans
+    # salva arquivo de com nome dos mangás
     with open(caminhoArquivo_mangas_assinados, 'w', encoding='utf-8') as arquivo:
         for m in mangasNomes:
             arquivo.writelines('{}\n'.format(m))
     print('Seu arquivo foi salvo em: {}'.format(caminhoArquivo_mangas_assinados))
-    with open(caminhoArquivo_mangas_scans, 'w', encoding='utf-8') as arquivo:
-        for c, v in mangas_scans.items():
-            arquivo.writelines('Mangá: {} | Scans: {} link => {}\n'.format(c, ' '.join(v)))
-    print('Seu arquivo foi salvo em: {}'.format(caminhoArquivo_mangas_scans))
+    # salva arquivo com nome das scans caso usuário especifique
+    if(resposta == 's' or resposta == 'S'):
+        with open(caminhoArquivo_mangas_scans, 'w', encoding='utf-8') as arquivo:
+            for c, v in mangas_scans.items():
+                print()
+                for chave, valor in v.items():
+                    arquivo.writelines('Mangá: {} | Scans: {} link => {}\n'.format(c, chave, valor))
+        print('Seu arquivo foi salvo em: {}'.format(caminhoArquivo_mangas_scans))
     t_f = finishCountTime(t_i)
     millis = int(t_f * 1000)
     hours = int(millis / 3.6e+6)
@@ -224,3 +229,4 @@ if __name__ == "__main__":
     k = y % 1000
     milliseconds = k
     print('Terminado em {} horas {} minutos {} segundos {} milisegundos. '.format(hours, minutes, seconds, milliseconds))
+    os.system('pause')

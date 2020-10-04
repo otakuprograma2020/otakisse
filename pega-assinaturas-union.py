@@ -129,12 +129,10 @@ if __name__ == "__main__":
             # driver.get(url_login)
             # pede o login enquanto não for válido o login
             while True:
-                email = 'bros_mario_rv@hotmail.com'
                 # leitura de dados de email ou usuário
-                # email = input('Email ou usuário: ')
-                password = "yW#8%DY4Am&A"
+                email = input('Email ou usuário: ')
                 # leitura de senha
-                # password = getpass.getpass('Senha: ')
+                password = getpass.getpass('Senha: ')
                 # envia email para navegador
                 wait.until(presence_of_element_located((By.ID, 'email'))).send_keys(email)
                 # envia senha para navegador

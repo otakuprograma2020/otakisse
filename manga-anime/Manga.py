@@ -117,6 +117,9 @@ class Manga:
         self.path_H_manga_hs = os.path.join(self.path_H_manga, 'h-mangas links HS')
         self.path_H_manga_hc = os.path.join(self.path_H_manga, 'h-mangas links HC')
         self.path_H_manga_bh = os.path.join(self.path_H_manga, 'h-mangas links BH')
+        self.logDelete = os.path.join(self.saida_path, "logDeleteCaps.txt")
+        self.arquivo_logMangasBaixados = os.path.join(self.saida_path, "logMangasBaixados.txt")
+        self.logNotificacoes = os.path.join(self.saida_path, "logNotificacoes.txt")
         self.mangasDeletados = {}
         self.headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
@@ -145,8 +148,11 @@ class Manga:
 
     def verificaLogDelete(self):
         try:
-            nomeArquivo = os.path.join(self.saida_path, "logDeleteCaps.txt")
-            arquivo = open(nomeArquivo, 'r', encoding='utf-8')
+            diretorio = os.listdir(self.saida_path)
+            if self.logDelete not in diretorio:
+                arquivo = open(self.logDelete, 'w', encoding='utf-8')
+                arquivo.close()
+            arquivo = open(self.logDelete, 'r', encoding='utf-8')
             texto = arquivo.readlines()
             arquivo.close()
             i = 0
@@ -165,7 +171,7 @@ class Manga:
                     resultDateTime =  datetime.datetime.strptime(ultimo, '%a %b %d %H:%M:%S %Y') - datetime.datetime.strptime(atual, '%a %b %d %H:%M:%S %Y')
                     if(resultDateTime.days <= 30):
                         newData.append(t)
-            arquivo = open(nomeArquivo, 'w', encoding='utf-8')
+            arquivo = open(self.logDelete, 'w', encoding='utf-8')
             arquivo.truncate(0)
             arquivo.writelines(newData)
             arquivo.close()
@@ -175,8 +181,11 @@ class Manga:
     
     def verificaLogBaixados(self):
         try:
-            nomeArquivo = os.path.join(self.saida_path, "logMangasBaixados.txt")
-            arquivo = open(nomeArquivo, 'r', encoding='utf-8')
+            diretorio = os.listdir(self.saida_path)
+            if self.logMangasBaixados not in diretorio:
+                arquivo = open(self.arquivo_logMangasBaixados, 'w', encoding='utf-8')
+                arquivo.close()
+            arquivo = open(self.arquivo_logMangasBaixados, 'r', encoding='utf-8')
             texto = arquivo.readlines()
             arquivo.close()
             i = 0
@@ -199,7 +208,7 @@ class Manga:
                     resultDateTime =  datetime.datetime.strptime(ultimo, '%a %b %d %H:%M:%S %Y') - datetime.datetime.strptime(atual, '%a %b %d %H:%M:%S %Y')
                     if(resultDateTime.days <= 30):
                         newData.append(t)
-            arquivo = open(nomeArquivo, 'w', encoding='utf-8')
+            arquivo = open(self.arquivo_logMangasBaixados, 'w', encoding='utf-8')
             arquivo.truncate(0)
             arquivo.writelines(newData)
             arquivo.close()
@@ -209,8 +218,11 @@ class Manga:
 
     def verificaLogNotificacoes(self):
         try:
-            nomeArquivo = os.path.join(self.saida_path, "logNotificacoes.txt")
-            arquivo = open(nomeArquivo, 'r', encoding='utf-8')
+            diretorio = os.listdir(self.saida_path)
+            if self.logNotificacoes not in diretorio:
+                arquivo = open(self.logNotificacoes, 'w', encoding='utf-8')
+                arquivo.close() 
+            arquivo = open(self.logNotificacoes, 'r', encoding='utf-8')
             texto = arquivo.readlines()
             arquivo.close()
             i = 0
@@ -229,7 +241,7 @@ class Manga:
                     resultDateTime =  datetime.datetime.strptime(ultimo, '%a %b %d %H:%M:%S %Y') - datetime.datetime.strptime(atual, '%a %b %d %H:%M:%S %Y')
                     if(resultDateTime.days <= 30):
                         newData.append(t)
-            arquivo = open(nomeArquivo, 'w', encoding='utf-8')
+            arquivo = open(self.logNotificacoes, 'w', encoding='utf-8')
             arquivo.truncate(0)
             arquivo.writelines(newData)
             arquivo.close()
@@ -239,8 +251,11 @@ class Manga:
 
     def verificaMangasLogDelete(self):
         try:
-            nomeArquivo = os.path.join(self.saida_path, "logDeleteCaps.txt")
-            arquivo = open(nomeArquivo, 'r', encoding='utf-8')
+            diretorio = os.listdir(self.saida_path)
+            if self.logDelete not in diretorio:
+                arquivo = open(self.logDelete, 'w', encoding='utf-8')
+                arquivo.close()
+            arquivo = open(self.logDelete, 'r', encoding='utf-8')
             texto = arquivo.readlines()
             arquivo.close()
             mangas = {}
@@ -281,8 +296,7 @@ class Manga:
     def getBaixados(self):
         try:
             baixados = []
-            nomeArquivo = os.path.join(self.saida_path, "logMangasBaixados.txt")
-            arquivo = open(nomeArquivo, 'r', encoding='utf-8')
+            arquivo = open(self.arquivo_logMangasBaixados, 'r', encoding='utf-8')
             texto = arquivo.readlines()
             arquivo.close()
             for t in texto:
@@ -1137,7 +1151,7 @@ class Manga:
                         alert = site.find('div', class_='alert alert-danger text-center')
                         if(alert):
                             print(alert.text)
-                            arquivo = open(os.path.join(self.saida_path, "logNotificacoes.txt"), "a", encoding='utf-8')
+                            arquivo = open(self.logNotificacoes, "a", encoding='utf-8')
                             arquivo.writelines(self.common.timestamp() + " " + alert.text + "\n")
                             arquivo.close()
                             break
@@ -1208,7 +1222,7 @@ class Manga:
             y = 0
             check = 0
             unionPasta = self.criarPastaManga('Union', self.mangaPasta)
-            with open(os.path.join(self.saida_path, "logNotificacoes.txt"), "a", encoding='utf-8') as arquivo:
+            with open(self.logNotificacoes, "a", encoding='utf-8') as arquivo:
                 arquivo.writelines(self.common.timestamp() + ' ')
                 ultimaChave = list(mangas.keys())[-1]
                 for k in mangas:
@@ -1307,7 +1321,7 @@ class Manga:
 
     def logMangasBaixados(self, fonte, nome, caps):
         try:
-            arquivo = open(os.path.join(self.saida_path, 'logMangasBaixados.txt'), 'a', encoding='utf-8')
+            arquivo = open(self.arquivo_logMangasBaixados, 'a', encoding='utf-8')
             if(len(caps) >= 1):
                 arquivo.writelines('{} - FONTE: <{}> - MANGÁ: [{}] - CAPÍTULOS ({}) - TOTAL = {}\n'.format(self.common.timestamp(),fonte, nome, ', '.join(caps), len(caps)))
             arquivo.close()
@@ -4971,8 +4985,7 @@ class Manga:
             itens = []
             if escolha_e == '1':
                 e = 0
-                complete_path = os.path.join(self.saida_path, 'logDeleteCaps.txt')
-                arquivo = open(complete_path, 'a', encoding='utf-8')
+                arquivo = open(self.logDelete, 'a', encoding='utf-8')
                 arquivo.writelines(self.common.timestamp() + '-')
                 arquivo.writelines('Mangá: <' + diretorioEscolhido.split('\\')[-1] + '> - ')
                 itens = [x for x in diretorio if x != 'desktop.ini' if x != 'cover.jpg']
@@ -5033,8 +5046,7 @@ class Manga:
                 itens = list(set(itens))
                 print("Último lido {}".format(cap_f))
                 print("{} itens excluídos!".format(len(itens)))
-                complete_path = os.path.join(self.saida_path, 'logDeleteCaps.txt')
-                arquivo = open(complete_path, 'a', encoding='utf-8')
+                arquivo = open(self.logDelete, 'a', encoding='utf-8')
                 arquivo.writelines(self.common.timestamp() + '-')
                 arquivo.writelines('Mangá: <' + diretorioEscolhido.split('\\')[-1] + '> - ')
                 arquivo.writelines('Capítulos apagados: {' + ', '.join(itens) + '} - ')

@@ -242,10 +242,10 @@ class Common:
         try:
             name = name.replace(':', '-')
             directory = listdir(pasta)
-            complete = pasta.join(pasta, name)
+            complete = path.join(pasta, name)
             # print(complete)
             if(name not in directory):
-                if not pasta.isdir(complete):
+                if not path.isdir(complete):
                     mkdir(complete)
                     return complete, False
                 return complete, False

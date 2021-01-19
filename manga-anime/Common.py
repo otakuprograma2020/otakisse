@@ -238,14 +238,14 @@ class Common:
                 system('pause')
             raise
 
-    def criarPasta(self, name, path):
+    def criarPasta(self, name, pasta):
         try:
             name = name.replace(':', '-')
-            directory = listdir(path)
-            complete = path.join(path, name)
+            directory = listdir(pasta)
+            complete = pasta.join(pasta, name)
             # print(complete)
             if(name not in directory):
-                if not path.isdir(complete):
+                if not pasta.isdir(complete):
                     mkdir(complete)
                     return complete, False
                 return complete, False

@@ -1,7 +1,8 @@
 # Scripts para auxiliar em suas otakisses
 
-## Gerar arquivo com mangás assinados union
-Para usuário de Windows baixe este arquivo (https://github.com/otakuprograma2020/otakisse/raw/main/output/Gerar%20mangas%20assinados%20UNION.exe) e execute
+# Mangás assinados no Union
+## O union sempre parando e você com preguiça de copiar nome por nome dos seus mangás assinados? Seus problemas acabaram
+Confira aqui [Gerar mangás assinados no Union Mangás](pega-assinaturas-union)
 
 
 # Projeto manga-anime 

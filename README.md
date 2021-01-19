@@ -6,4 +6,4 @@ Para usuário de Windows baixe este arquivo (https://github.com/otakuprograma202
 
 # Projeto manga-anime 
 ## Baixar manga no seu PC, selecione mangás aleatórios
-Confira [manga-anime](manga-anime)
+Confira [manga-anime](Manga & Anime)

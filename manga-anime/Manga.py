@@ -1,7 +1,5 @@
 import re, requests, random, os, shutil, subprocess, platform, operator, sys, webbrowser, zipfile, getpass, time, base64, rarfile, datetime
 from Common import Common
-from boolean_model import Boolean_Model
-from vectorial_model import Vectorial_Model
 from numpy import arange
 from playsound import playsound
 import pyexcel_ods3 as pods
@@ -107,19 +105,19 @@ class Manga:
         self.categoriasDicHS = {'one-shot': [], 'doujin': [], 'h-manga': [], 'uncategorized': [], 'pack-de-imagens': []}
         self.categoriaDicBH = {'one-shots': [], 'doujinshis': [], 'h-mangá': []}
         self.exclude_urls_hs = ['https://hentaiseason.com/tag/futanari/', 'https://hentaiseason.com/tag/scat/', 'https://hentaiseason.com/tag/shemale/', 'https://hentaiseason.com/tag/yaoi/', 'https://hentaiseason.com/tag/zoofilia/', 'https://hentaiseason.com/category/tia-primas-e-cia/', 'https://hentaiseason.com/category/familia-sacana/']
-        self.mangaPasta = 'D:\\Imagens\\Mangás'
-        self.path_H_manga = os.path.join(self.mangaPasta, 'H')
-        self.path_H_manga_hs = os.path.join(self.path_H_manga, 'h-mangas links HS')
-        self.path_H_manga_hc = os.path.join(self.path_H_manga, 'h-mangas links HC')
-        self.path_H_manga_bh = os.path.join(self.path_H_manga, 'h-mangas links BH')
         self.feature = feature
         self.cwd = os.getcwd()
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
         self.arquivos_sounds = os.path.join(self.dir_path, 'sounds')
         self.arquivo_entrada = os.path.join(self.dir_path, 'entrada')
         self.saida_path = self.criarPastaManga('saida', self.dir_path)[0]
-        self.mangasDeletados = {}
         self.common = Common(feature, self.saida_path)
+        self.mangaPasta = self.criarPastaManga('mangas', self.dir_path)[0]
+        self.path_H_manga = os.path.join(self.mangaPasta, 'H')
+        self.path_H_manga_hs = os.path.join(self.path_H_manga, 'h-mangas links HS')
+        self.path_H_manga_hc = os.path.join(self.path_H_manga, 'h-mangas links HC')
+        self.path_H_manga_bh = os.path.join(self.path_H_manga, 'h-mangas links BH')
+        self.mangasDeletados = {}
         self.headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
         }
@@ -1209,6 +1207,7 @@ class Manga:
             x = 0
             y = 0
             check = 0
+            unionPasta = self.criarPastaManga('Union', self.mangaPasta)
             with open(os.path.join(self.saida_path, "logNotificacoes.txt"), "a", encoding='utf-8') as arquivo:
                 arquivo.writelines(self.common.timestamp() + ' ')
                 ultimaChave = list(mangas.keys())[-1]
@@ -1247,27 +1246,9 @@ class Manga:
                     total_caps = 1 + len(mangas[k][:-1])
                     mangasLog = []
                     for c in caps[:total_caps]:
-                        # busca = re.findall('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', c.find('a', class_='').string)
-                        ri = Vectorial_Model(self.mangaPasta)
-                        Q = ri.cosine_similarity(10, k)
-                        results = [ri.get_doc(x) for x in Q]
-                        bo = Boolean_Model(k, self.mangaPasta)
-                        print()
-                        result2 = bo.corpusAndQuery()
-                        result = ri.get_doc(Q[0])
                         id_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', c.find('a', class_='').string) #pylint: disable=anomalous-backslash-in-string
                         if(id_cap):
-                            if(id_cap.group() == '01' or id_cap.group() == '1' or id_cap.group() == '00' or id_cap.group() == '0'):
-                                mangaPath= self.criarPastaManga(k, self.mangaPasta)[0]
-                            else:
-                                if(result == result2):
-                                    mangaPath= self.criarPastaManga(result, self.mangaPasta)[0]
-                                elif(k not in results):
-                                    mangaPath= self.criarPastaManga(k, self.mangaPasta)[0]
-                                elif(result2 in results):
-                                    mangaPath= self.criarPastaManga(result, self.mangaPasta)[0]
-                                else:
-                                    mangaPath= self.criarPastaManga(k, self.mangaPasta)[0]
+                            mangaPath= self.criarPastaManga(k, unionPasta)[0]
                         # id_capitulo = c.find('a', class_='').string.replace('Cap. ', '').replace(' ', '_')
                         url_capitulo = c.find('a', class_='').get('href')
                         site = self.common.soup(feature=self.feature, url=url_capitulo)
@@ -1684,6 +1665,9 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             with webdriver.Chrome(options=self.common.optionsChrome()) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Golden Mangas'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 time.sleep(10)
                 html = driver.page_source
@@ -1765,21 +1749,11 @@ class Manga:
 
     def baixarCapGolden(self, url, id_cap, mangaNome):
         try:
+            goldenPasta = self.criarPastaManga('Golden', self.mangaPasta)
             site = self.common.soup(url=os.path.join(url))
             imgs = site.find_all('img', class_='img-responsive')
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
             print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            elif(resultB in resultsManga):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, goldenPasta)[0]
             if(self.mangasDeletados.get(mangaNome)):
                 if(id_cap not in self.mangasDeletados.get(mangaNome)):
                     capPath = self.criarPastaCapCompLen(mangaPath, id_cap, len(imgs))
@@ -1880,21 +1854,10 @@ class Manga:
 
     def baixarCapAma(self, url, id_cap, mangaNome):
         try:
+            amaPasta = self.criarPastaManga('Ama Scan', self.mangaPasta)
             site = self.common.soup(url=os.path.join(url))
             imgs = site.find_all('img', class_='img-responsive')
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            elif(resultB in resultsManga):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, amaPasta)[0]
             if(self.mangasDeletados.get(mangaNome)):
                 if(id_cap not in self.mangasDeletados.get(mangaNome)):
                     capPath = self.criarPastaCapCompLen(mangaPath, id_cap, len(imgs))
@@ -1994,7 +1957,11 @@ class Manga:
 
     def baixarCapMangaHost(self, url, id_cap):
         try:
+            manga_host_manga = self.criarPastaManga('Manga Host', self.mangaPasta)
             with webdriver.Chrome(options=self.common.optionsChrome()) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Manga Host'+'='*8)
+                print('Obtendo informações do capitulo ...')
                 driver.get(url)
                 time.sleep(2)
                 html = driver.page_source
@@ -2006,19 +1973,8 @@ class Manga:
             mangaNome = self.normalizeNameManga(mangaNome)
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
             print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            elif(resultB in resultsManga):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, manga_host_manga)[0]
             if(self.mangasDeletados.get(mangaNome)):
                 if(id_cap not in self.mangasDeletados.get(mangaNome)):
                     capPath = self.criarPastaCapCompLen(mangaPath, id_cap, len(imgs))
@@ -2120,6 +2076,7 @@ class Manga:
 
     def baixarCapNeox(self, url, id_cap):
         try:
+            neox_pasta = self.criarPastaManga('Neox Scan', self.mangaPasta)
             site = self.common.soup(url=os.path.join(url,'?style=list'))
             imgs = site.find_all('img', class_='wp-manga-chapter-img')
             ol = site.find('ol', class_='breadcrumb')
@@ -2128,19 +2085,8 @@ class Manga:
             mangaNome = self.normalizeNameManga(mangaNome)
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
             print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            elif(resultB in resultsManga):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, neox_pasta)[0]
             if(self.mangasDeletados.get(mangaNome)):
                 if(id_cap not in self.mangasDeletados.get(mangaNome)):
                     capPath = self.criarPastaCapCompLen(mangaPath, id_cap, len(imgs))
@@ -2241,6 +2187,7 @@ class Manga:
 
     def baixarCapAnimaRegia(self, url, id):
         try:
+            anima_regia_pasta = self.criarPastaManga('Anima Regia Scan', self.mangaPasta)
             site = self.common.soup(url=url)
             imgs = site.find_all('img', class_='img-responsive')[:-1]
             linkName = site.find('ul', class_='nav navbar-nav').find('a')
@@ -2252,19 +2199,8 @@ class Manga:
             else:
                 print('Nome de mangá não encontrado')
                 return
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
             print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            elif(resultB in resultsManga):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, anima_regia_pasta)[0]
             if(self.mangasDeletados.get(mangaNome)):
                 if(id not in self.mangasDeletados.get(mangaNome)):
                     capPath = self.criarPastaCapCompLen(mangaPath, id, len(imgs))
@@ -2288,6 +2224,9 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Neko Breaker'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 time.sleep(2)
                 html = driver.page_source
@@ -2365,6 +2304,7 @@ class Manga:
 
     def baixarCapNekoBreaker(self,url):
         try:
+            neko_breaker_pasta =self.criarPastaManga('Neko Breaker Scab', self.mangaPasta)
             site = self.common.soup(url=url+'?style=list')
             ol = site.find('ol', class_='breadcrumb')
             ol = [x for x in ol.text.replace('\t', '').split('\n') if x != '']
@@ -2373,16 +2313,7 @@ class Manga:
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
             id_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', ol[-1]) #pylint: disable=anomalous-backslash-in-string
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, neko_breaker_pasta)[0]
             imgs = site.find_all('img', class_='wp-manga-chapter-img')
             if(id_cap):
                 if(self.mangasDeletados.get(mangaNome)):
@@ -2408,6 +2339,9 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Dark Yue Scan'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 time.sleep(2)
                 html = driver.page_source
@@ -2501,6 +2435,7 @@ class Manga:
 
     def baixarCapDarkYue(self, url):
         try:
+            dark_yue_pasta = self.criarPastaManga('Dark Yue Scan', self.mangaPasta)
             site = self.common.soup(url=url+'?style=list')
             ol = site.find('ol', class_='breadcrumb')
             ol = [x for x in ol.text.replace('\t', '').split('\n') if x != '']
@@ -2509,16 +2444,7 @@ class Manga:
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
             id_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', ol[-1]) #pylint: disable=anomalous-backslash-in-string
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, dark_yue_pasta)[0]
             imgs = site.find_all('img', class_='wp-manga-chapter-img')
             if(id_cap):
                 if(self.mangasDeletados.get(mangaNome)):
@@ -2545,6 +2471,9 @@ class Manga:
             capsBaixados = []
             site = self.common.soup(url=url)
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'ReMangas Scan'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 print()
             caps_a = [x.a for x in site.find_all('h5', class_='chapter-title-rtl') if(x.a)]
@@ -2617,6 +2546,7 @@ class Manga:
 
     def baixarCapRemangas(self, url):
         try:
+            remangas_pasta = self.criarPastaManga('ReMangas Scan', self.mangaPasta)
             site = self.common.soup(url=url)
             # pode dar problema com titulo de mangá com dois pontos
             active = site.find('li', class_='active').string.split(':')[1]
@@ -2625,19 +2555,7 @@ class Manga:
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
             id_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', active) #pylint: disable=anomalous-backslash-in-string
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            elif(resultB in resultsManga):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, remangas_pasta)[0]
             imgs = site.find('div', id='all').find_all('img')
             if(id_cap):
                 if(self.mangasDeletados.get(mangaNome)):
@@ -2663,6 +2581,9 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Lima Scan'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 html = driver.page_source
             site = self.common.soup(markup=html)
@@ -2738,6 +2659,7 @@ class Manga:
 
     def baixarCapLima(self, url):
         try:
+            lima_pasta = self.criarPastaManga('Lima Scan', self.mangaPasta)
             site = self.common.soup(url=url+'?style=list')
             ol = site.find('ol', class_='breadcrumb')
             ol = [x for x in ol.text.replace('\t', '').split('\n') if x != '']
@@ -2746,16 +2668,7 @@ class Manga:
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
             id_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', ol[-1]) #pylint: disable=anomalous-backslash-in-string
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, lima_pasta)[0]
             imgs = site.find_all('img', class_='wp-manga-chapter-img')
             if(id_cap):
                 if(self.mangasDeletados.get(mangaNome)):
@@ -2781,6 +2694,9 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Drope Scans'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 time.sleep(5)
                 # element = driver.find_elements_by_xpath('/html/body/div[1]/div/div[1]/div/div[2]/div/div/div/div/div/div[1]/div/div[3]/div[2]/div/div/span')
@@ -2866,7 +2782,11 @@ class Manga:
     
     def baixarCapDrope(self, url):
         try:
+            drope_pasta = self.criarPastaManga('Drope Scan', self.mangaPasta)
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Drope Scan'+'='*8)
+                print('Obtendo informações do capitulo ...')
                 driver.get(url)
                 html = driver.page_source
             site = self.common.soup(markup=html)
@@ -2877,26 +2797,7 @@ class Manga:
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
             id_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', ol[-1]) #pylint: disable=anomalous-backslash-in-string
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            resultB = b.corpusAndQuery()
-            # segunda comparação com nome e os resultados encontrados
-            v = Vectorial_Model(mangaNome.split())
-            results = v.cosine_similarity(10, resultV)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(resultB, self.mangaPasta)
-            resultB = b.corpusAndQuery()
-            print()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            elif(resultB in resultsManga):
-                mangaPath = self.criarPastaManga(resultB, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, drope_pasta)[0]
             imgs = site.find_all('img', class_='wp-manga-chapter-img')
             if(id_cap):
                 if(self.mangasDeletados.get(mangaNome)):
@@ -2919,7 +2820,11 @@ class Manga:
 
     def baixarCapMundoManga(self, url):
         try:
+            mundo_manga_pasta = self.criarPastaManga('Mundo Manga-kun Scan', self.mangaPasta)
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Mundo Manga-kun Scan'+'='*8)
+                print('Obtendo informações do capitulo ...')
                 wait = WebDriverWait(driver, 10)
                 driver.get(url)
                 elmnt = wait.until(presence_of_element_located((By.ID, 'label_leitor_paginacao_completo')))
@@ -2932,16 +2837,7 @@ class Manga:
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
             id_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', title[1]) #pylint: disable=anomalous-backslash-in-string
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, mundo_manga_pasta)[0]
             imgs = site.find_all('img', class_='pagina_capitulo')
             if(id_cap):
                 id_cap = id_cap.group()
@@ -3036,6 +2932,9 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Mark Scan'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 time.sleep(2)
                 html = driver.page_source
@@ -3113,24 +3012,14 @@ class Manga:
 
     def baixarCapMarkScan(self, url):
         try:
+            mark_pasta = self.criarPastaManga('Mark Scan', self.mangaPasta)
             site = self.common.soup(feature=self.feature, url=url, headers=self.common.headers)
             title = site.find('title').string.split('-')
             mangaNome = title[0].strip()
             mangaNome = self.normalizeNameManga(mangaNome)
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
-            if(self.checkNameManga(mangaNome)):
-                mangaNome = self.checkNameManga(mangaNome)
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultV == resultB):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome,self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, mark_pasta)[0]
             search = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', title[1]) #pylint: disable=anomalous-backslash-in-string
             imgs = site.find_all('img', class_='wp-manga-chapter-img')
             if(search):
@@ -3235,22 +3124,14 @@ class Manga:
 
     def baixarCapGekkou(self,url):
         try:
+            gekkou_pasta = self.criarPastaManga('Gekkou Scans', self.mangaPasta)
             site = self.common.soup(feature=self.feature, url=url, headers=self.common.headers)
             title = site.find('title').string.split('Capítulo')
             mangaNome = title[0].strip()
             mangaNome = self.normalizeNameManga(mangaNome)
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultV == resultB):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome,self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, gekkou_pasta)[0]
             search = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', title[1]) #pylint: disable=anomalous-backslash-in-string
             if(search):
                 cap = search.group(0)
@@ -3350,6 +3231,7 @@ class Manga:
 
     def baixarCapAuraMangas(self,url):
         try:
+            aura_pasta = self.criarPastaManga('Aura Mangas', self.mangaPasta)
             site = self.common.soup(url=url)
             title = site.find('title').string.split('|')
             mangaName = title[0].strip()
@@ -3359,16 +3241,7 @@ class Manga:
             id_cap = re.search(r'([0-9]+\-?)(\s){0,0}([\.0-9]+)?', title[1])
             imgs = site.find_all('img')
             imgs = [x for x in imgs if x.get('border')]
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaName)
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaName, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultV == resultB):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaName,self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaName,aura_pasta)[0]
             if(id_cap):
                 id_cap = id_cap.group()
                 if(self.mangasDeletados.get(mangaName)):
@@ -3477,8 +3350,12 @@ class Manga:
 
     def baixarCapTaosect(self,url):
         try:
+            tao_sect_pasta = self.criarPastaManga('Tao Sect Manga', self.mangaPasta)
             # muda visualização para página completa
             with webdriver.Chrome(chrome_options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Tao Sect Scan'+'='*8)
+                print('Obtendo informações do capitulo ...')
                 driver.get(url)
                 wait = WebDriverWait(driver, 10)
                 try:
@@ -3499,21 +3376,8 @@ class Manga:
             mangaName = self.normalizeNameManga(mangaName)
             if(self.checkNameManga(mangaName)):
                 mangaName = self.checkNameManga(mangaName)
-            ri = Vectorial_Model(self.mangaPasta)
-            Q = ri.cosine_similarity(10, mangaName)
-            bo = Boolean_Model(mangaName, self.mangaPasta)
-            print()
-            result2 = bo.corpusAndQuery()
-            # self.common.clearTerminal()
-            # pesquisando no diretorio 
-            result = ri.get_doc(Q[0])
             id_cap = re.search(r'([0-9]+\-?)(\s){0,0}([\.0-9]+)?', h1[-1])
-            # se existir algum resultado passa esse resultado para funçao
-            # se não passa o nome tirado da tag h1
-            if(result == result2):
-                mangaPath = self.criarPastaManga(result2, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaName, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaName, tao_sect_pasta)[0]
             imgs = site.find_all('img', class_='pagina_capitulo')
             if(id_cap):
                 id_cap = id_cap.group()
@@ -3670,8 +3534,12 @@ class Manga:
 
     def baixarCapMangaDex(self,url):
         try:
+            mangadex_pasta = self.criarPastaManga('MangaDex', self.mangaPasta)
             imgs = []
             with webdriver.Chrome(chrome_options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'MangaDex'+'='*8)
+                print('Obtendo informações do capitulo ...')
                 wait = WebDriverWait(driver, 10)
                 driver.get(url)
                 time.sleep(3)
@@ -3718,19 +3586,7 @@ class Manga:
                             time.sleep(3)
             imgs = list(set(imgs))
             id_capitulo, mangaName = self.getIdCapAndMangaNameMangadex(url)
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaName)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaName, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            elif(resultB in resultsManga):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaName, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaName, mangadex_pasta)[0]
             if(self.mangasDeletados.get(mangaName)):
                 if(id_capitulo not in self.mangasDeletados.get(mangaName)):
                     capPath = self.criarPastaCapCompLen(mangaPath, id_capitulo, len(imgs))
@@ -3755,7 +3611,11 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Tsuki Mangas'+'='*8)
+                print("Obtendo informação do manga ...")
                 driver.get(url)
+                time.sleep(2)
                 SCROLL_PAUSE_TIME = 0.5
 
                 # Get scroll height
@@ -3796,11 +3656,19 @@ class Manga:
                     cap_i, cap_f = None, None
                 elif(choice == '2'):
                     cap_i = self.common.readString('Baixar a partir de capítulo => ')
+                    # adicionando um zero a esquerda
+                    cap_i =  "{num:0>2}".format(num=cap_i)
                 elif(choice == '3'):
                     cap_f = self.common.readString('Baixar até o capítulo => ')
+                    # adicionando um zero a esquerda
+                    cap_f =  "{num:0>2}".format(num=cap_f)
                 elif(choice == '4'):
                     cap_i = self.common.readString('Baixar a partir de capítulo => ')
+                    # adicionando um zero a esquerda
+                    cap_i =  "{num:0>2}".format(num=cap_i)
                     cap_f = self.common.readString('Baixar até o capítulo => ')
+                    # adicionando um zero a esquerda
+                    cap_f =  "{num:0>2}".format(num=cap_f)
                 elif(choice == '5'):
                     capBaixado = self.baixarCapTsukiMangas(caps_values[-1])
                     if(capBaixado):
@@ -3848,7 +3716,11 @@ class Manga:
 
     def baixarCapTsukiMangas(self, url):
         try:
+            tsuki_pasta = self.criarPastaManga('Tsuki Mangas', self.mangaPasta)
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Tsuki Mangas'+'='*8)
+                print('Obtendo informações do capítulo ...')
                 wait = WebDriverWait(driver, 10)
                 driver.get(url)
                 elmnt = wait.until(presence_of_element_located((By.CLASS_NAME, 'bblc')))
@@ -3860,6 +3732,7 @@ class Manga:
                         time.sleep(3)
                         html = driver.page_source
                         break
+                html = driver.page_source
             site = self.common.soup(markup=html)
             id_cap = re.search(r'([0-9]+\-?)(\s){0,0}([\.0-9]+)?', site.find('b', class_='f14c').text)
             mangaName = site.find('b', class_='f20').text
@@ -3867,20 +3740,7 @@ class Manga:
             if(self.checkNameManga(mangaName)):
                 mangaName = self.checkNameManga(mangaName)
             imgs = site.find_all('img', class_='leitorimg imgleitorbrabao')
-            ri = Vectorial_Model(self.mangaPasta)
-            Q = ri.cosine_similarity(10, mangaName)
-            bo = Boolean_Model(mangaName, self.mangaPasta)
-            print()
-            result2 = bo.corpusAndQuery()
-            # self.common.clearTerminal()
-            # pesquisando no diretorio 
-            result = ri.get_doc(Q[0])
-            # se existir algum resultado passa esse resultado para funçao
-            # se não passa o nome tirado da tag h1
-            if(result and result2):
-                mangaPath = self.criarPastaManga(result2, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaName, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaName, tsuki_pasta)[0]
             if(id_cap):
                 id_cap = id_cap.group()
                 if(self.mangasDeletados.get(mangaName)):
@@ -3906,6 +3766,9 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             with webdriver.Chrome(options=self.common.optionsChrome()) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Leitor.net'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 SCROLL_PAUSE_TIME = 2
 
@@ -3993,8 +3856,12 @@ class Manga:
 
     def baixarCapLeitorDotnet(self, url):
         try:
+            leitor_pasta = self.criarPastaManga('Leitor.net', self.mangaPasta)
             check = False
             with webdriver.Chrome(options=self.common.optionsChrome()) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Leitor.net'+'='*8)
+                print('Obtendo informações do capitulo ...')
                 driver.set_window_size(1366,768)
                 wait = WebDriverWait(driver, 10)
                 driver.get(url)
@@ -4039,16 +3906,7 @@ class Manga:
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
             id_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?',site.find('span', class_='current-chapter').text) #pylint: disable=anomalous-backslash-in-string
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, mangaNome)
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            resultB = b.corpusAndQuery()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(mangaNome, leitor_pasta)[0]
             # mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)
             if(check):
                 imgs = site.find('div', class_='manga-page').find_all('img')
@@ -4077,6 +3935,9 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Manga Livre'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 SCROLL_PAUSE_TIME = 2
 
@@ -4166,7 +4027,11 @@ class Manga:
 
     def baixarCapMangaLivre(self, url):
         try:
+            manga_livre_pasta = self.criarPastaManga('Manga Livre', self.mangaPasta)
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Manga Livre'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.set_window_size(1366,768)
                 wait = WebDriverWait(driver, 10)
                 driver.get(url)
@@ -4199,29 +4064,9 @@ class Manga:
             mangaNome = self.normalizeNameManga(mangaNome)
             if(self.checkNameManga(mangaNome)):
                 mangaNome = self.checkNameManga(mangaNome)
-            ri = Vectorial_Model(self.mangaPasta)
-            Q = ri.cosine_similarity(10, mangaNome)
-            results = [ri.get_doc(x) for x in Q]
-            bo = Boolean_Model(mangaNome, self.mangaPasta)
-            print()
-            result2 = bo.corpusAndQuery()
-            # pesquisando no diretorio 
-            result = ri.get_doc(Q[0])
-            # se existir algum resultado passa esse resultado para funçao
-            # se não passa o nome tirado da tag
             id_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?',site.find('span', class_='current-chapter').text) #pylint: disable=anomalous-backslash-in-string
             if(id_cap):
-                if(id_cap.group() == '01' or id_cap.group() == '1' or id_cap.group() == '00' or id_cap.group() == '0'):
-                    mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
-                else:
-                    if(result == result2):
-                        mangaPath = self.criarPastaManga(result, self.mangaPasta)[0]
-                    elif(mangaNome not in results):
-                        mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
-                    elif(result2 in results):
-                        mangaPath = self.criarPastaManga(result, self.mangaPasta)[0]
-                    else:
-                        mangaPath = self.criarPastaManga(mangaNome, self.mangaPasta)[0]
+                mangaPath = self.criarPastaManga(mangaNome, manga_livre_pasta)[0]
                 if(self.mangasDeletados.get(mangaNome)):
                     if(id_cap.group() not in self.mangasDeletados.get(mangaNome)):
                         capPath = self.criarPastaCapCompLen(mangaPath, id_cap.group(), len(imgs))
@@ -4245,18 +4090,9 @@ class Manga:
             self.verificaMangasLogDelete()
             capsBaixados = []
             if(cap_i):
-                try:
-                    if(int(cap_i) < 10):
-                        cap_i = '0' + cap_i
-                except:
-                    pass
-
+                cap_i = "{num:0>2}".format(num=cap_i)
             if(cap_f):
-                try:
-                    if(int(cap_f) < 10):
-                        cap_f = '0' + cap_f
-                except:
-                    pass
+                cap_f = "{num:0>2}".format(num=cap_f)
             site = self.common.soup(url=url)
             nomeManga = re.sub('[\\/*?<>|]+', '',site.find('h2').string).replace(':', '-')
             nomeManga = self.normalizeNameManga(nomeManga)
@@ -4310,28 +4146,10 @@ class Manga:
     
     def baixarCapUnion(self, url, id_cap, nomeManga):
         try:
+            union_pasta = self.criarPastaManga('Union Mangas', self.mangaPasta)
             if(self.checkNameManga(nomeManga)):
                 nomeManga = self.checkNameManga(nomeManga)
-            v = Vectorial_Model(self.mangaPasta)
-            results = v.cosine_similarity(10, nomeManga)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(nomeManga, self.mangaPasta)
-            resultB = b.corpusAndQuery()
-            # segunda comparação com nome e os resultados encontrados
-            v = Vectorial_Model(nomeManga.split())
-            results = v.cosine_similarity(10, resultV)
-            resultsManga = [v.get_doc(x) for x in results]
-            resultV = v.get_doc(results[0])
-            b = Boolean_Model(resultB, self.mangaPasta)
-            resultB = b.corpusAndQuery()
-            print()
-            if(resultB == resultV):
-                mangaPath = self.criarPastaManga(resultV, self.mangaPasta)[0]
-            elif(resultB in resultsManga):
-                mangaPath = self.criarPastaManga(resultB, self.mangaPasta)[0]
-            else:
-                mangaPath = self.criarPastaManga(nomeManga, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(nomeManga, union_pasta)[0]
             site = self.common.soup(url=url)
             imgs = site.find_all('img',class_='img-manga')[2:]
             if(self.mangasDeletados.get(nomeManga)):
@@ -4354,6 +4172,7 @@ class Manga:
     
     def baixarAteCapUnion(self, url, cap):
         try:
+            union_pasta = self.criarPastaManga('Union Mangas', self.mangaPasta)
             i = 0
             cap = float(cap)
             site = self.common.soup(url=url)
@@ -4361,7 +4180,7 @@ class Manga:
             nomeManga = self.normalizeNameManga(nomeManga)
             if(self.checkNameManga(nomeManga)):
                 nomeManga = self.checkNameManga(nomeManga)
-            mangaPath = self.criarPastaManga(nomeManga, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(nomeManga, union_pasta)[0]
             caps = site.find_all('div', class_='col-xs-6 col-md-6')
             for c in caps:
                 num_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', c.find('a', class_='').string).group(0) #pylint: disable=anomalous-backslash-in-string
@@ -4386,6 +4205,7 @@ class Manga:
 
     def salvarMangaInteiroUnion(self, url):
         try:
+            union_pasta = self.criarPastaManga('Union Mangas', self.mangaPasta)
             self.verificaMangasLogDelete()
             capsBaixados = []
             site = self.common.soup(feature=self.feature, url=url)
@@ -4394,7 +4214,7 @@ class Manga:
             nomeManga = self.normalizeNameManga(nomeManga)
             if(self.checkNameManga(nomeManga)):
                 nomeManga = self.checkNameManga(nomeManga)
-            mangaPath = self.criarPastaManga(nomeManga, self.mangaPasta)[0]
+            mangaPath = self.criarPastaManga(nomeManga, union_pasta)[0]
             caps = site.find_all('div', class_='col-xs-6 col-md-6')
             for c in caps:
                 num_cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', c.find('a', class_='').string).group(0) #pylint: disable=anomalous-backslash-in-string
@@ -4425,6 +4245,7 @@ class Manga:
 
     def salvarMangaInteiroHC(self, url, path=None):
         try:
+            hipercool_pasta_manga = self.criarPastaManga('Hipercool', self.mangaPasta)
             self.baixados = self.getBaixados()
             site = self.common.soup(feature=self.feature, url=url)
             categoria = self.getCategoriaTagsHC(url, self.feature, 0)
@@ -4451,7 +4272,7 @@ class Manga:
                             return None
                         manga_path = self.criarPastaManga(manga_nome, pasta)[0]
                     else:
-                        manga_path = self.criarPastaManga(manga_nome, self.mangaPasta)[0]
+                        manga_path = self.criarPastaManga(manga_nome, hipercool_pasta_manga)[0]
                     caps = site.find_all('a', class_='title')[1:]
                     caps_dic = {x.string : self.initURLHC+x.get('href') for x in caps}
                     caps_keys = list(caps_dic.keys())
@@ -4540,6 +4361,9 @@ class Manga:
         try:
             self.baixados = self.getBaixados()
             with webdriver.Chrome(options=self.common.optionsChrome(headless=True)) as driver:
+                self.common.clearTerminal()
+                print('='*8+'Baixar Hentai'+'='*8)
+                print('Obtendo informações do manga ...')
                 driver.get(url)
                 time.sleep(3)
                 html = driver.page_source
@@ -4645,6 +4469,7 @@ class Manga:
 
     def baixarCapHC(self, url, url_main):
         try:
+            hipercool_pasta_manga = self.criarPastaManga('Hipercool', self.mangaPasta)
             self.baixados = self.getBaixados()
             site = self.common.soup(feature=self.feature, url=url_main)
             categoria = self.getCategoriaTagsHC(url_main, self.feature, 0)
@@ -4660,21 +4485,7 @@ class Manga:
                     return None
                 manga_path = self.criarPastaManga(manga_nome, pasta)[0]
             else:
-                v = Vectorial_Model(self.mangaPasta)
-                results = v.cosine_similarity(10, manga_nome)
-                resultsManga = [v.get_doc(x) for x in results]
-                resultV = v.get_doc(results[0])
-                b = Boolean_Model(manga_nome, self.mangaPasta)
-                print()
-                resultB = b.corpusAndQuery()
-                if(resultB == resultV):
-                    manga_path = self.criarPastaManga(resultV, self.mangaPasta)[0]
-                elif(resultB in resultsManga):
-                    manga_path = self.criarPastaManga(resultV, self.mangaPasta)[0]
-                elif(categoria in categorias):
-                    manga_path = self.criarPastaManga(manga_nome, self.path_H_manga)[0]
-                else:
-                    manga_path = self.criarPastaManga(manga_nome, self.mangaPasta)[0]
+                manga_path = self.criarPastaManga(manga_nome, hipercool_pasta_manga)[0]
             site = self.common.soup(url=url)
             title = site.find('title').string
             id_capitulo = re.search('Capítulo ([0-9]+\-?)(\s){0,0}([\.0-9]+)?', title.string) #pylint: disable=anomalous-backslash-in-string
@@ -4764,7 +4575,8 @@ class Manga:
             cap = re.search('([0-9]+\-?)(\s){0,0}([\.0-9]+)?', site.find('title').string).group(0) #pylint: disable=anomalous-backslash-in-string
             # cap = cap.replace('Capítulo ', '')
             proximo_cap = site.find('a', class_='next')
-            mangaPath = self.criarPastaManga(mangaNome, self.path_H_manga)[0]
+            pasta = self.criarPastaManga('h-mangas links HC', self.path_H_manga)[0]
+            mangaPath = self.criarPastaManga(mangaNome, pasta)[0]
             imgs = site.find_all('img',class_='page')
             list_caps.update({cap: imgs})
             while proximo_cap:
@@ -4782,8 +4594,7 @@ class Manga:
             print('ERRO (baixarProximosCapsHC): {0}'.format(err))
             os.system('pause')
     
-    def downloadManga(self, urlsPaths):
-        
+    def downloadManga(self, urlsPaths):        
         try:
             for chave in urlsPaths:
                 directory = chave
@@ -6167,6 +5978,7 @@ class Manga:
                             elif(choice13 == 2):
                                 self.baixarMangaDex(url=url)
                             elif(choice13 == 3):
+                                print('='*8+'Tsuki Mangas'+'='*8)
                                 self.baixarMangaTsukiMangas(url=url)
                             elif(choice13 == 4):
                                 self.baixarMangaLeitorDotNet(url=url)

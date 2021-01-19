@@ -14,7 +14,10 @@ class Common:
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
         }
         self.chrome_options = chromeOptions.Options()
-        self.saida_path = saida_path
+        if saida_path:
+            self.saida_path = saida_path
+        else:
+            self.saida_path = self.criarPasta('saida', path.dirname(path.realpath(__file__)))
         self.chrome_extension = self.chromeAppData()
 
     def chromeAppData(self):
@@ -235,6 +238,24 @@ class Common:
                 system('pause')
             raise
 
+    def criarPasta(self, name, path):
+        try:
+            name = name.replace(':', '-')
+            directory = listdir(path)
+            complete = path.join(path, name)
+            # print(complete)
+            if(name not in directory):
+                if not path.isdir(complete):
+                    mkdir(complete)
+                    return complete, False
+                return complete, False
+            else:
+                print('Diretório {} existente'.format(complete))
+                return complete
+        except Exception as err:
+            print('ERROR (criarPasta): {0}'.format(err))
+            system('pause')
+
     def unzipCommon(self, directory):
         diretorio =  listdir(directory)
         for d in diretorio:
@@ -299,6 +320,7 @@ class Common:
                 except ValueError:
                     continue
         return entrada
+    
     def shutDown(self):
         sys.exit(0)
         

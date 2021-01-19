@@ -137,7 +137,7 @@ class Manga:
         self.firefox_options.headless = True
         self.common.clearTerminal()
         self.verificaMangasLogDelete()
-        # self.verificaLogBaixados()
+        self.verificaLogBaixados()
         self.verificaLogDelete()
         self.verificaLogNotificacoes()
         self.completados = self.verificaCompletados()
@@ -1221,7 +1221,7 @@ class Manga:
             x = 0
             y = 0
             check = 0
-            unionPasta = self.criarPastaManga('Union', self.mangaPasta)
+            unionPasta = self.criarPastaManga('Union', self.mangaPasta)[0]
             with open(self.logNotificacoes, "a", encoding='utf-8') as arquivo:
                 arquivo.writelines(self.common.timestamp() + ' ')
                 ultimaChave = list(mangas.keys())[-1]
@@ -1763,7 +1763,7 @@ class Manga:
 
     def baixarCapGolden(self, url, id_cap, mangaNome):
         try:
-            goldenPasta = self.criarPastaManga('Golden', self.mangaPasta)
+            goldenPasta = self.criarPastaManga('Golden', self.mangaPasta)[0]
             site = self.common.soup(url=os.path.join(url))
             imgs = site.find_all('img', class_='img-responsive')
             print()
@@ -1868,7 +1868,7 @@ class Manga:
 
     def baixarCapAma(self, url, id_cap, mangaNome):
         try:
-            amaPasta = self.criarPastaManga('Ama Scan', self.mangaPasta)
+            amaPasta = self.criarPastaManga('Ama Scan', self.mangaPasta)[0]
             site = self.common.soup(url=os.path.join(url))
             imgs = site.find_all('img', class_='img-responsive')
             mangaPath = self.criarPastaManga(mangaNome, amaPasta)[0]
@@ -1971,7 +1971,7 @@ class Manga:
 
     def baixarCapMangaHost(self, url, id_cap):
         try:
-            manga_host_manga = self.criarPastaManga('Manga Host', self.mangaPasta)
+            manga_host_manga = self.criarPastaManga('Manga Host', self.mangaPasta)[0]
             with webdriver.Chrome(options=self.common.optionsChrome()) as driver:
                 self.common.clearTerminal()
                 print('='*8+'Manga Host'+'='*8)
@@ -2090,7 +2090,7 @@ class Manga:
 
     def baixarCapNeox(self, url, id_cap):
         try:
-            neox_pasta = self.criarPastaManga('Neox Scan', self.mangaPasta)
+            neox_pasta = self.criarPastaManga('Neox Scan', self.mangaPasta)[0]
             site = self.common.soup(url=os.path.join(url,'?style=list'))
             imgs = site.find_all('img', class_='wp-manga-chapter-img')
             ol = site.find('ol', class_='breadcrumb')
@@ -2201,7 +2201,7 @@ class Manga:
 
     def baixarCapAnimaRegia(self, url, id):
         try:
-            anima_regia_pasta = self.criarPastaManga('Anima Regia Scan', self.mangaPasta)
+            anima_regia_pasta = self.criarPastaManga('Anima Regia Scan', self.mangaPasta)[0]
             site = self.common.soup(url=url)
             imgs = site.find_all('img', class_='img-responsive')[:-1]
             linkName = site.find('ul', class_='nav navbar-nav').find('a')
@@ -2318,7 +2318,7 @@ class Manga:
 
     def baixarCapNekoBreaker(self,url):
         try:
-            neko_breaker_pasta =self.criarPastaManga('Neko Breaker Scab', self.mangaPasta)
+            neko_breaker_pasta =self.criarPastaManga('Neko Breaker Scab', self.mangaPasta)[0]
             site = self.common.soup(url=url+'?style=list')
             ol = site.find('ol', class_='breadcrumb')
             ol = [x for x in ol.text.replace('\t', '').split('\n') if x != '']
@@ -2449,7 +2449,7 @@ class Manga:
 
     def baixarCapDarkYue(self, url):
         try:
-            dark_yue_pasta = self.criarPastaManga('Dark Yue Scan', self.mangaPasta)
+            dark_yue_pasta = self.criarPastaManga('Dark Yue Scan', self.mangaPasta)[0]
             site = self.common.soup(url=url+'?style=list')
             ol = site.find('ol', class_='breadcrumb')
             ol = [x for x in ol.text.replace('\t', '').split('\n') if x != '']
@@ -2560,7 +2560,7 @@ class Manga:
 
     def baixarCapRemangas(self, url):
         try:
-            remangas_pasta = self.criarPastaManga('ReMangas Scan', self.mangaPasta)
+            remangas_pasta = self.criarPastaManga('ReMangas Scan', self.mangaPasta)[0]
             site = self.common.soup(url=url)
             # pode dar problema com titulo de mangá com dois pontos
             active = site.find('li', class_='active').string.split(':')[1]
@@ -2673,7 +2673,7 @@ class Manga:
 
     def baixarCapLima(self, url):
         try:
-            lima_pasta = self.criarPastaManga('Lima Scan', self.mangaPasta)
+            lima_pasta = self.criarPastaManga('Lima Scan', self.mangaPasta)[0]
             site = self.common.soup(url=url+'?style=list')
             ol = site.find('ol', class_='breadcrumb')
             ol = [x for x in ol.text.replace('\t', '').split('\n') if x != '']
@@ -2796,7 +2796,7 @@ class Manga:
     
     def baixarCapDrope(self, url):
         try:
-            drope_pasta = self.criarPastaManga('Drope Scan', self.mangaPasta)
+            drope_pasta = self.criarPastaManga('Drope Scan', self.mangaPasta)[0]
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
                 self.common.clearTerminal()
                 print('='*8+'Drope Scan'+'='*8)
@@ -2834,7 +2834,7 @@ class Manga:
 
     def baixarCapMundoManga(self, url):
         try:
-            mundo_manga_pasta = self.criarPastaManga('Mundo Manga-kun Scan', self.mangaPasta)
+            mundo_manga_pasta = self.criarPastaManga('Mundo Manga-kun Scan', self.mangaPasta)[0]
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
                 self.common.clearTerminal()
                 print('='*8+'Mundo Manga-kun Scan'+'='*8)
@@ -3026,7 +3026,7 @@ class Manga:
 
     def baixarCapMarkScan(self, url):
         try:
-            mark_pasta = self.criarPastaManga('Mark Scan', self.mangaPasta)
+            mark_pasta = self.criarPastaManga('Mark Scan', self.mangaPasta)[0]
             site = self.common.soup(feature=self.feature, url=url, headers=self.common.headers)
             title = site.find('title').string.split('-')
             mangaNome = title[0].strip()
@@ -3138,7 +3138,7 @@ class Manga:
 
     def baixarCapGekkou(self,url):
         try:
-            gekkou_pasta = self.criarPastaManga('Gekkou Scans', self.mangaPasta)
+            gekkou_pasta = self.criarPastaManga('Gekkou Scans', self.mangaPasta)[0]
             site = self.common.soup(feature=self.feature, url=url, headers=self.common.headers)
             title = site.find('title').string.split('Capítulo')
             mangaNome = title[0].strip()
@@ -3245,7 +3245,7 @@ class Manga:
 
     def baixarCapAuraMangas(self,url):
         try:
-            aura_pasta = self.criarPastaManga('Aura Mangas', self.mangaPasta)
+            aura_pasta = self.criarPastaManga('Aura Mangas', self.mangaPasta)[0]
             site = self.common.soup(url=url)
             title = site.find('title').string.split('|')
             mangaName = title[0].strip()
@@ -3364,7 +3364,7 @@ class Manga:
 
     def baixarCapTaosect(self,url):
         try:
-            tao_sect_pasta = self.criarPastaManga('Tao Sect Manga', self.mangaPasta)
+            tao_sect_pasta = self.criarPastaManga('Tao Sect Manga', self.mangaPasta)[0]
             # muda visualização para página completa
             with webdriver.Chrome(chrome_options=self.common.optionsChrome(True)) as driver:
                 self.common.clearTerminal()
@@ -3548,7 +3548,7 @@ class Manga:
 
     def baixarCapMangaDex(self,url):
         try:
-            mangadex_pasta = self.criarPastaManga('MangaDex', self.mangaPasta)
+            mangadex_pasta = self.criarPastaManga('MangaDex', self.mangaPasta)[0]
             imgs = []
             with webdriver.Chrome(chrome_options=self.common.optionsChrome(True)) as driver:
                 self.common.clearTerminal()
@@ -3730,7 +3730,7 @@ class Manga:
 
     def baixarCapTsukiMangas(self, url):
         try:
-            tsuki_pasta = self.criarPastaManga('Tsuki Mangas', self.mangaPasta)
+            tsuki_pasta = self.criarPastaManga('Tsuki Mangas', self.mangaPasta)[0]
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
                 self.common.clearTerminal()
                 print('='*8+'Tsuki Mangas'+'='*8)
@@ -3870,7 +3870,7 @@ class Manga:
 
     def baixarCapLeitorDotnet(self, url):
         try:
-            leitor_pasta = self.criarPastaManga('Leitor.net', self.mangaPasta)
+            leitor_pasta = self.criarPastaManga('Leitor.net', self.mangaPasta)[0]
             check = False
             with webdriver.Chrome(options=self.common.optionsChrome()) as driver:
                 self.common.clearTerminal()
@@ -4041,7 +4041,7 @@ class Manga:
 
     def baixarCapMangaLivre(self, url):
         try:
-            manga_livre_pasta = self.criarPastaManga('Manga Livre', self.mangaPasta)
+            manga_livre_pasta = self.criarPastaManga('Manga Livre', self.mangaPasta)[0]
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
                 self.common.clearTerminal()
                 print('='*8+'Manga Livre'+'='*8)
@@ -4160,7 +4160,7 @@ class Manga:
     
     def baixarCapUnion(self, url, id_cap, nomeManga):
         try:
-            union_pasta = self.criarPastaManga('Union Mangas', self.mangaPasta)
+            union_pasta = self.criarPastaManga('Union Mangas', self.mangaPasta)[0]
             if(self.checkNameManga(nomeManga)):
                 nomeManga = self.checkNameManga(nomeManga)
             mangaPath = self.criarPastaManga(nomeManga, union_pasta)[0]
@@ -4186,7 +4186,7 @@ class Manga:
     
     def baixarAteCapUnion(self, url, cap):
         try:
-            union_pasta = self.criarPastaManga('Union Mangas', self.mangaPasta)
+            union_pasta = self.criarPastaManga('Union Mangas', self.mangaPasta)[0]
             i = 0
             cap = float(cap)
             site = self.common.soup(url=url)
@@ -4219,7 +4219,7 @@ class Manga:
 
     def salvarMangaInteiroUnion(self, url):
         try:
-            union_pasta = self.criarPastaManga('Union Mangas', self.mangaPasta)
+            union_pasta = self.criarPastaManga('Union Mangas', self.mangaPasta)[0]
             self.verificaMangasLogDelete()
             capsBaixados = []
             site = self.common.soup(feature=self.feature, url=url)
@@ -4259,7 +4259,7 @@ class Manga:
 
     def salvarMangaInteiroHC(self, url, path=None):
         try:
-            hipercool_pasta_manga = self.criarPastaManga('Hipercool', self.mangaPasta)
+            hipercool_pasta_manga = self.criarPastaManga('Hipercool', self.mangaPasta)[0]
             self.baixados = self.getBaixados()
             site = self.common.soup(feature=self.feature, url=url)
             categoria = self.getCategoriaTagsHC(url, self.feature, 0)
@@ -4483,7 +4483,7 @@ class Manga:
 
     def baixarCapHC(self, url, url_main):
         try:
-            hipercool_pasta_manga = self.criarPastaManga('Hipercool', self.mangaPasta)
+            hipercool_pasta_manga = self.criarPastaManga('Hipercool', self.mangaPasta)[0]
             self.baixados = self.getBaixados()
             site = self.common.soup(feature=self.feature, url=url_main)
             categoria = self.getCategoriaTagsHC(url_main, self.feature, 0)

@@ -1625,7 +1625,7 @@ class Manga:
         try:
             choice = -2
             while choice != 0:
-                print('1 - Markscan\n2 - Gekkouscans\n3 - Taosect\n4 - Mundo Mangá-kun\n5 - Aura Scan\n6 - Drope Scan (SITE MODIFICADO)\n7 - Lima Scan\n8 - REMANGAS\n9 - DarkYue Realm\n10 - NekoBreaker\n11 - AnimaRegia\n12 - Neox\n13 - AMA Scan')
+                print(' 0) VOLTAR\n-1) SAIR\n1 - Markscan\n2 - Gekkouscans\n3 - Taosect\n4 - Mundo Mangá-kun\n5 - Aura Scan\n6 - Drope Scan (SITE MODIFICADO)\n7 - Lima Scan\n8 - REMANGAS\n9 - DarkYue Realm\n10 - NekoBreaker\n11 - AnimaRegia\n12 - Neox\n13 - AMA Scan')
                 choice = int(self.common.readString())
                 if(choice == -1):
                     self.common.shutDown()
@@ -5157,13 +5157,17 @@ class Manga:
         try:
             directory = os.listdir(file_path)
             i = 0
+            print(' 0) VOLTAR\n-1) SAIR')
             for d in directory:
                 if(d == 'completados.txt'):
                     continue
                 index = directory.index(d)
                 i = index + 1 
                 new_name = re.sub('.txt','',d)
-                print('{} - {}'.format(i, new_name))
+                if i < 10:
+                    print(' {}) {}'.format(i, new_name))
+                elif i > 10 and i < 99:
+                    print('{}) {}'.format(i, new_name))
             choice = int(input('Sua escolha => '))
             if choice == 0:
                 return None,  0
@@ -5222,11 +5226,17 @@ class Manga:
             else:
                 texts = sorted(text.split('\n'))
                 i = 0
+                print('  0) VOLTAR\n -1) SAIR')
                 for t in texts:
                     index = texts.index(t)
                     i = index + 1 
                     new_texts = list(filter(None, t.split('/')))
-                    print('{} - {}'.format(i, new_texts[-1].upper()))
+                    if i < 10:
+                        print('  {}) {}'.format(i, new_texts[-1].upper()))
+                    elif i >= 10 and i <= 99:
+                        print(' {}) {}'.format(i, new_texts[-1].upper()))
+                    else:
+                        print('{}) {}'.format(i, new_texts[-1].upper()))
                 choice = int(input('Sua escolha=> '))
                 if choice == -1:
                     sys.exit(0)    

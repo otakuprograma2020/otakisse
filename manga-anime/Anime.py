@@ -37,6 +37,19 @@ class Anime:
                 self.common.shutDown()
             elif(choice == 1):
                 pass
+
+    def random_anime_web(self):
+        choice = -2
+        while choice:
+            print(' 0) para voltar\n-1) para sair')
+            choice = self.common.whileDataTypeReadString(int)
+            if(choice == 0):
+                self.common.clearTerminal()
+                break
+            elif(choice == -1):
+                self.common.shutDown()
+            elif(choice == 1):
+                pass
     
     def randomHtube(self):
         url = ('https://www.hentaistube.com/lista-de-hentais-legendados/')

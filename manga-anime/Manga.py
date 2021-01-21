@@ -1083,10 +1083,8 @@ class Manga:
         alertLogin = None
         while True:
             print('É necessário informar suas credenciais para se comunicar com o site')
-            # email = input('Email: ')
-            email = 'bros_mario_rv@hotmail.com'
-            password = '8Qk3LmcP'
-            # password = getpass.getpass('Senha: ')
+            email = input('Email: ')
+            password = getpass.getpass('Senha: ')
             self.login_data['email'] = email
             self.login_data['password'] = password
             s = requests.Session()
@@ -5822,7 +5820,7 @@ class Manga:
     def menu(self):
         choice = -2
         while choice:
-            print('''1 - selecionar site para baixar mangá\n2 - para baixar mangá de site de uma scan\n3 - verificar notificações union\n4 - para baixar capítulo mangá em pasta especifica\n5 - para mangá aleatório na web\n6 - para explorar mangás\n7 - para deletar capítulos\n8 - para manga aleatório\n9 - para descompactar todos mangas baixados da manga livre/mangaProject\n10 - para descompactar de um manga baixado da manga livre/mangaProject\n11 - para extrair capitulos de arquivos compactados baixados do drive\n12 - para verificar home H-manga\n13 - Gerar arquivo com links H\n14 - para H-Manga aleatório na web\n0 - voltar''')
+            print('''  0) voltar\n  1) selecionar site para baixar mangá\n  2) para baixar mangá de site de uma scan\n  3) verificar notificações union\n  4) para baixar capítulo mangá em pasta especifica\n  5) para mangá aleatório na web\n  6) para explorar mangás\n  7) para deletar capítulos\n  8) para manga aleatório\n  9) para descompactar todos mangas baixados da manga livre/mangaProject\n 10) para descompactar de um manga baixado da manga livre/mangaProject\n 11) para extrair capitulos de arquivos compactados baixados do drive\n 12) para verificar home H-manga\n 13) Gerar arquivo com links H\n 14) para H-Manga aleatório na web''')
             try:
                 choice = int(self.common.readString())
                 if(choice == -1):

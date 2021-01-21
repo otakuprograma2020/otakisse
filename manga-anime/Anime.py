@@ -1,4 +1,4 @@
-import rarfile, zipfile, os, re, time, random, webbrowser
+import rarfile, zipfile, os, re, time, random, webbrowser, random
 from Common import Common
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,11 +11,12 @@ class Anime:
     def __init__(self, feature):
         self.feature = feature
         self.dir_path = os.path.dirname(os.path.realpath(__file__))
-        self.saida_path = self.criarPasta('saida', self.dir_path)
-        self.common = Common('html.parser', self.saida_path)
-        self.common.clearTerminal()
+        self.common = Common('html.parser')
+        self.saida_path = self.common.criarPasta('saida', self.dir_path)
         self.cwd = os.getcwd()
+        self.common.clearTerminal()
         self.initUrl_hAnime = 'https://hanime.tv'
+        self.initur_url_animes_house = 'https://animeshouse.net/'
         self.favHanime = ['3D', 'AHEGAO', 'ANAL', 'BIG BOOBS', 'BLOW JOB', 'BOOB JOB', 'CENSORED', 'COSPLAY', 'CREAMPIE', 'DARK SKIN', 'FACIAL', 'FANTASY', 'FILMED', 'FOOT JOB', 'GANGBANG', 'GLASSES', 'HAND JOB', 'HAREM', 'HD', 'INCEST', 'LACTATION',  'LOLI', 'MAID', 'MASTURBATION', 'MILF', 'MIND BREAK', 'MIND CONTROL', 'MONSTER', 'NEKOMIMI', 'NURSE', 'ORGY', 'POV', 'PREGNANT', 'PUBLIC SEX', 'RAPE', 'REVERSE RAPE', 'RIMJOB', 'SCHOOL GIRL', 'SHOTA', 'SOFTCORE', 'SWIMSUIT', 'TEACHER', 'THREESOME', 'TOYS', 'TSUNDERE',  'UNCENSORED', 'VANILLA', 'VIRGIN', 'WATERSPORTS', 'X-RAY', 'YURI']
         self.tag_dic_Hanime = {}
         self.comCensura_h_tube = {}
@@ -24,26 +25,18 @@ class Anime:
         print("| MENU ANIMES |")
         print("-"*15)
 
-    def criarPasta(self, name, path):
-        try:
-            name = name.replace(':', ' - ')
-            directory = os.listdir(path)
-            complete = os.path.join(path, name)
-            # print(complete)
-            if(name not in directory):
-                if not os.path.isdir(complete):
-                    os.mkdir(complete)
-                    return complete
-                return complete
-            else:
-                print('Diretório {} existente'.format(complete))
-                return complete
-        except Exception as err:
-            print('ERROR (criarPasta): {0}'.format(err))
-            os.system('pause')
-    
     def randomHAnimeWeb(self):
-        pass
+        choice = -2
+        while choice:
+            print('0) para voltar\n-1) para sair')
+            choice = self.common.whileDataTypeReadString(int)
+            if(choice == 0):
+                self.common.clearTerminal()
+                break
+            elif(choice == -1):
+                self.common.shutDown()
+            elif(choice == 1):
+                pass
     
     def randomHtube(self):
         url = ('https://www.hentaistube.com/lista-de-hentais-legendados/')
@@ -411,10 +404,46 @@ class Anime:
         print('Foram encontrados {} com censura e {} sem censura!'.format(len(comCensura), len(semCensura)))
         print('Tempo total: {} minutos e {} segundos'.format(minutos, segundos))
 
+    def menu_gerar_arquivo(self):
+        choice = -2
+        while choice:
+            print('0 - para voltar\n1 - para Links H-Animes BH em txt\n2 - para H-Animes H-Tube em txt\n-1 - para sair')
+            choice = self.common.whileDataTypeReadString(int)
+            if(choice == 0):
+                self.common.clearTerminal()
+                break
+            elif(choice == -1):
+                self.common.shutDown()
+            elif(choice == 1):
+                self.getLinksToTxt_hAnime_BH()
+            elif(choice == 2):
+                self.getAllLinksToTxtHTube()
+
+    def animes_house_aleatorio(self):
+        site = self.common.soup(url='https://animeshouse.net/anime/')
+        next_pag = site.find('i', id='nextpagination')
+        arrow_pag =  next_pag.parent
+        dic_animes = {}
+        while next_pag:
+            archive_content = site.find('div', id='archive-content')
+            animes = archive_content.find_all('article')
+            for anime in animes:
+                h3 = anime.find('h3')
+                if h3:
+                    if h3.a:
+                        dic_animes.update({h3.text: h3.a.get('href')})
+            site = self.common.soup(url=arrow_pag.get('href'))
+            next_pag = site.find('i', id='nextpagination')
+            if next_pag:
+                arrow_pag =  next_pag.parent
+        r =random.choice(list(dic_animes.keys()))
+        print('Abrindo {}'.format(r))
+        webbrowser.open(dic_animes[r])
+
     def animeMenu(self):
         choice = -2
         while choice:
-            print('1 - para H-Animes BH em txt\n2 - para H-Animes H-Tube em txt\n3 - para hanime aleatório\n4 - para abrir todos os favoritos do hanime\n5 - para htube aleatório\n0 - para voltar')
+            print('1 - para gerar arquivos de Links\n3 - para hanime aleatório\n4 - para abrir todos os favoritos do hanime\n5 - para htube aleatório\n0 - para voltar')
             choice = ''
             while type(choice) != int:
                 try:
@@ -426,10 +455,6 @@ class Anime:
                 break
             elif(choice == -1):
                 self.common.shutDown()
-            elif(choice == 1):
-                self.getLinksToTxt_hAnime_BH()
-            elif(choice == 2):
-                self.getAllLinksToTxtHTube()
             elif(choice == 3):
                 self.hAnimeTV()
             elif(choice == 4):
@@ -440,3 +465,26 @@ class Anime:
                 self.common.clearTerminal()
                 print('Opção Inválida!')
                 
+
+if __name__ == "__main__":
+    c = Common()
+    site = c.soup(url='https://animeshouse.net/anime/')
+    next_pag = site.find('i', id='nextpagination')
+    arrow_pag =  next_pag.parent
+    dic_animes = {}
+    while next_pag:
+        archive_content = site.find('div', id='archive-content')
+        animes = archive_content.find_all('article')
+        for anime in animes:
+            h3 = anime.find('h3')
+            if h3:
+                if h3.a:
+                    dic_animes.update({h3.text: h3.a.get('href')})
+        site = c.soup(url=arrow_pag.get('href'))
+        next_pag = site.find('i', id='nextpagination')
+        if next_pag:
+            arrow_pag =  next_pag.parent
+    r =random.choice(list(dic_animes.keys()))
+    print('Abrindo {}'.format(r))
+    webbrowser.open(dic_animes[r])
+    print()

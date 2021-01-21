@@ -10,7 +10,7 @@ if __name__ == "__main__":
     while choice != -1:
         # os.system('pause')
         common.clearTerminal()
-        print('1 - Mangá\n2 - Anime\n-1 - para sair')
+        print(' 1) Mangá\n 2) Anime\n-1) para sair')
         try:
             choice = int(common.readString())
         except ValueError:

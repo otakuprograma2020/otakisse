@@ -1625,7 +1625,7 @@ class Manga:
         try:
             choice = -2
             while choice != 0:
-                print(' 0) VOLTAR\n-1) SAIR\n1 - Markscan\n2 - Gekkouscans\n3 - Taosect\n4 - Mundo Mangá-kun\n5 - Aura Scan\n6 - Drope Scan (SITE MODIFICADO)\n7 - Lima Scan\n8 - REMANGAS\n9 - DarkYue Realm\n10 - NekoBreaker\n11 - AnimaRegia\n12 - Neox\n13 - AMA Scan')
+                print(' 0) VOLTAR\n-1) SAIR\n 1) Markscan\n 2) Gekkouscans\n 3) Taosect\n 4) Mundo Mangá-kun\n 5) Aura Scan\n 6) Drope Scan (SITE MODIFICADO)\n 7) Lima Scan\n 8) REMANGAS\n 9) DarkYue Realm\n10) NekoBreaker\n11) AnimaRegia\n12) Neox\n13) AMA Scan')
                 choice = int(self.common.readString())
                 if(choice == -1):
                     self.common.shutDown()
@@ -4686,20 +4686,23 @@ class Manga:
             i = 0
             lists_list = []
             texts_itens = []
+            print(' 0) VOLTAR')
             for c in lists:
                 if(c.string != '\n'):
                     i += 1
                     if(c.string != None):
-                        print(('{} - {}'.format(i, c.string)).upper())
+                        print((' {}) {}'.format(i, c.string)).upper())
                         lists_list.append(c.a.get('href'))
                         texts_itens.append(c.string.upper())
                     if(c.get('class')):
                         if('dropdown' in c.get('class')):
                             texts = list(filter(None,c.text.split('\n')))
-                            texts.remove('\r')
+                            if '\r' in texts:
+                                texts.remove('\r')
                             texts[0] = texts[0].strip(' ')
-                            print(('{} - {}'.format(i, texts[0])).upper())
+                            print((' {}) {}'.format(i, texts[0])).upper())
                             texts_itens.append(texts[0].upper())
+            print('-1) SAIR')
             return lists_list,texts_itens
         except Exception as err:
             print('ERROR (getURLsUnion): {0}'.format(err))
@@ -4772,10 +4775,14 @@ class Manga:
             i = 0
             generos_list = []
             itens = []
+            print(' 0) VOLTAR')
             for g in generos:
                 if(g.string != '\n'):
                     i += 1
-                    print(('{} - {}'.format(i, g.string)).upper())
+                    if i < 10:
+                        print((' {}) {}'.format(i, g.string)).upper())
+                    elif i >= 10 and i <= 99:
+                        print(('{}) {}'.format(i, g.string)).upper())
                     itens.append(g.string.upper())
                     generos_list.append(g.a.get('href'))
             return generos_list, itens
@@ -5830,7 +5837,7 @@ class Manga:
     def menu(self):
         choice = -2
         while choice:
-            print('''  0) voltar\n  1) selecionar site para baixar mangá\n  2) para baixar mangá de site de uma scan\n  3) verificar notificações union\n  4) para baixar capítulo mangá em pasta especifica\n  5) para mangá aleatório na web\n  6) para explorar mangás\n  7) para deletar capítulos\n  8) para manga aleatório\n  9) para descompactar todos mangas baixados da manga livre/mangaProject\n 10) para descompactar de um manga baixado da manga livre/mangaProject\n 11) para extrair capitulos de arquivos compactados baixados do drive\n 12) para verificar home H-manga\n 13) Gerar arquivo com links H\n 14) para H-Manga aleatório na web''')
+            print('''   0) VOLTAR\n  -1) SAIR\n   1) selecionar site para baixar mangá\n   2) para baixar mangá de site de uma scan\n   3) verificar notificações union\n   4) para baixar capítulo mangá em pasta especifica\n   5) para mangá aleatório na web\n   6) para explorar mangás\n   7) para deletar capítulos\n   8) para manga aleatório\n   9) para descompactar todos mangas baixados da manga livre/mangaProject\n  10) para descompactar de um manga baixado da manga livre/mangaProject\n  11) para extrair capitulos de arquivos compactados baixados do drive\n  12) para verificar home H-manga\n  13) Gerar arquivo com links H\n  14) para H-Manga aleatório na web''')
             try:
                 choice = int(self.common.readString())
                 if(choice == -1):
@@ -5841,7 +5848,7 @@ class Manga:
                 elif(choice == 13):
                     choice1 = -2
                     while choice1 != -1:
-                        print('1 - gerar links HC\n2 - gerar links de HS\n3 - gerar links de BH')
+                        print(' 0) VOLTAR\n 1) gerar links HC\n 2) gerar links de HS\n 3) gerar links de BH\n-1) SAIR')
                         choice1 = int(self.common.readString())
                         if(choice1 == -1):
                             self.common.shutDown()
@@ -5974,7 +5981,7 @@ class Manga:
                         choice13 = -2
                         while choice != 0:
                             t_o = self.common.initCountTime()
-                            print('1 - Union\n2 - Mangadex\n3 - Tsuki Mangás\n4 - Leitor.net\n5 - MangaLivre\n6 - MangaHost\n7 - Golden Mangás\n-3 - hipercool\n-4 - HSeason\n-5 - BH')
+                            print(' 0) VOLTAR\n-1) SAIR\n 1)Union\n 2) Mangadex\n 3) Tsuki Mangás\n 4) Leitor.net\n 5) MangaLivre\n 6) MangaHost\n 7) Golden Mangás\n-3) hipercool\n-4) HSeason\n-5) BH')
                             choice13 = int(self.common.readString())
                             if(choice13 != -1 and choice13 != 0):
                                 url = self.common.readString('Digite a url: ')

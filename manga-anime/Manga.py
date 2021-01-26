@@ -5173,7 +5173,7 @@ class Manga:
                 new_name = re.sub('.txt','',d)
                 if i < 10:
                     print(' {}) {}'.format(i, new_name))
-                elif i > 10 and i < 99:
+                elif i >= 10 and i <= 99:
                     print('{}) {}'.format(i, new_name))
             choice = int(input('Sua escolha => '))
             if choice == 0:
@@ -5326,6 +5326,37 @@ class Manga:
             print('ERROR (getContentSiteHC): {0}'.format(err))
             os.system('pause')
 
+    def getContentSiteMH(self, url):
+        try:
+            links = []
+            initURL = 'https://mundohentaioficial.com'
+            site = self.common.soup(self.feature, url)
+            lastPage = site.find_all('a', class_='material-icons')[-1].get('href').split('/')[-1]
+            listPages = [str(x) for x in range(1, int(lastPage)+1)]
+            print('Adicionar filtros? S/N')
+            escolha = self.common.readString()
+            if escolha == 'S' or escolha == 's':
+                print('1) Video\n2) Completo')
+                escolha = self.common.whileDataTypeReadString(int)
+            for i in listPages:
+                print('Visitando página {}'.format(i))
+                site = self.common.soup(self.feature, url+'/'+i)
+                if escolha == 1:
+                    conteudo = site.find_all('div', class_='right-tape')
+                    conteudo = [x.nextSibling for x in conteudo]
+                elif escolha == 2:
+                    conteudo = site.find_all('div', class_='left-tape')
+                    conteudo = [x.nextSibling for x in conteudo]
+                elif escolha == 'N' or escolha == 'n':
+                    conteudo = site.find_all('a', class_ ='absolute')
+                links.extend([initURL+x.get('href') for x in conteudo if not x.get('target')])
+            escolhido = random.choice(links)
+            print(self.common.soup(self.feature, escolhido).title.string.replace('- Mundo Hentai', '').strip())
+            webbrowser.open(escolhido, new=0, autoraise=True)
+        except Exception as err:
+            print('ERROR (getContentSiteMH): {0}'.format(err))
+            os.system('pause')
+
     def getContentSiteBH(self, url):
         try:
             links = []
@@ -5349,8 +5380,8 @@ class Manga:
                     break
             print(random.choice(links))
             webbrowser.open(random.choice(links), new=0, autoraise=True)
-        except Exception:
-            print("Opção escolhida está vazia")
+        except Exception as err:
+            print('ERROR (getContentSiteBH): {0}'.format(err))
             os.system('pause')
 
     def menuCountCaps(self, pasta, op, subpastas=None):
@@ -5797,6 +5828,7 @@ class Manga:
             bh = [1,2,3]
             hc = [5,6]
             hs = [7,8,9,10]
+            mh = [11, 12]
             choice = -2
             while choice  != 0:
                 text, choice = self.getFiles(self.arquivo_entrada)
@@ -5818,6 +5850,12 @@ class Manga:
                             print('Tempo total: {} minutos e {} segundos'.format(minutos, segundos))
                         if choice in bh:
                             self.getContentSiteBH(url)
+                            t_f = self.common.finishCountTime(t_o)
+                            segundos = t_f % 60
+                            minutos  = int(t_f / 60)
+                            print('Tempo total: {} minutos e {} segundos'.format(minutos, segundos))
+                        if choice in mh:
+                            self.getContentSiteMH(url)
                             t_f = self.common.finishCountTime(t_o)
                             segundos = t_f % 60
                             minutos  = int(t_f / 60)

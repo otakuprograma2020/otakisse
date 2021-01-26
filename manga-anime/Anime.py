@@ -28,29 +28,83 @@ class Anime:
     def randomHAnimeWeb(self):
         choice = -2
         while choice:
-            print('0) para voltar\n-1) para sair')
+            print(' 0) para voltar\n 1) H-Anime TV\n 2) HTUbe\n 3) MundoHentai\n-1) para sair')
             choice = self.common.whileDataTypeReadString(int)
             if(choice == 0):
                 self.common.clearTerminal()
                 break
+            elif choice == 1:
+                self.hAnimeTV()
+                continue
+            elif choice == 2:
+                self.randomHtube()
+                continue
+            elif choice == 3:
+                self.randomMH()
+                continue
             elif(choice == -1):
                 self.common.shutDown()
-            elif(choice == 1):
-                pass
 
     def random_anime_web(self):
         choice = -2
         while choice:
-            print(' 0) para voltar\n-1) para sair')
+            print(' 0) para voltar\n 1)Animes House\n-1) para sair')
             choice = self.common.whileDataTypeReadString(int)
             if(choice == 0):
                 self.common.clearTerminal()
+                break
+            elif choice == 1:
+                self.animes_house_aleatorio()
                 break
             elif(choice == -1):
                 self.common.shutDown()
             elif(choice == 1):
                 pass
     
+    def randomMH(self):
+        try:
+            initURL = 'https://mundohentaioficial.com'
+            links = []
+            print('Adicionar filtros? S/N')
+            escolha = self.common.readString()
+            if escolha == 'S' or escolha == 's':
+                arquivo = open(os.path.join(self.dir_path, 'entrada', 'mh-tags.txt'))
+                urls = [x.replace('\n', '') for x in arquivo.readlines()]
+                arquivo.close()
+                i = 0
+                urls.sort()
+                for u in urls:
+                    i = urls.index(u) + 1
+                    new_name = u.split('/')[-1].upper()
+                    if i < 10:
+                        print(' {}) {}'.format(i, new_name))
+                    elif i >= 10 and i <= 99:
+                        print('{}) {}'.format(i, new_name))
+                escolha = self.common.whileDataTypeReadString(int)
+                filtro = urls[escolha-1]
+                site = self.common.soup(self.feature, filtro)
+                lastPage = site.find_all('a', class_='material-icons')[-1].get('href').split('/')[-1]
+                listPages = [str(x) for x in range(1, int(lastPage)+1)]
+                for i in listPages:
+                    print('Visitando página {}'.format(i))
+                    site = self.common.soup(self.feature, filtro+'/'+i)
+                    conteudo = site.find_all('div', class_='right-tape')
+                    conteudo = [x.nextSibling for x in conteudo]
+                    links.extend([initURL+x.get('href') for x in conteudo if not x.get('target')])
+            else:
+                site = self.common.soup(self.feature, 'https://mundohentaioficial.com/tipo/video')
+                lastPage = site.find_all('a', class_='material-icons')[-1].get('href').split('/')[-1]
+                listPages = [str(x) for x in range(1, int(lastPage)+1)]
+                for i in listPages:
+                    print('Visitando página {}'.format(i))
+                    site = self.common.soup(self.feature, 'https://mundohentaioficial.com/tipo/video'+'/'+i)
+                    conteudo = site.find_all('a', class_ ='absolute')
+                    links.extend([initURL+x.get('href') for x in conteudo if not x.get('target')])
+            escolhido = random.choice(links)
+            print(self.common.soup(self.feature, escolhido).title.string.replace('- Mundo Hentai', '').strip())
+            webbrowser.open(escolhido, new=0, autoraise=True)
+        except Exception as err:
+            print('ERRO (randomMH): {}'.format(err))
     def randomHtube(self):
         url = ('https://www.hentaistube.com/lista-de-hentais-legendados/')
         self.comCensura_h_tube = {}
@@ -456,7 +510,7 @@ class Anime:
     def animeMenu(self):
         choice = -2
         while choice:
-            print('1 - para gerar arquivos de Links\n3 - para hanime aleatório\n4 - para abrir todos os favoritos do hanime\n5 - para htube aleatório\n0 - para voltar')
+            print('0) VOLTAR\n1) para anime aleatório na web\n2) para H-anime aleatório na web\n4) para abrir todos os favoritos do hanime')
             choice = ''
             while type(choice) != int:
                 try:
@@ -468,6 +522,12 @@ class Anime:
                 break
             elif(choice == -1):
                 self.common.shutDown()
+            elif choice == 1:
+                self.random_anime_web()
+                continue
+            elif choice == 2:
+                self.randomHAnimeWeb()
+                continue
             elif(choice == 3):
                 self.hAnimeTV()
             elif(choice == 4):

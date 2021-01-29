@@ -225,7 +225,7 @@ class Common:
                     for chunk in chunks:
                         new_archive.write(chunk)
                         bar.next()
-                        bar.write('\t\t\t\t\t\t[{}/{}]'.format(file_atual,total_files))
+                        bar.write('\t\t\t\t\t\t[{}/{}]'.format(file_atual+1,total_files))
                     bar.finish()
                 print("Download finalizado. Arquivo salvo em: {}".format(path_archiveName))
                 if op:

@@ -6,5 +6,5 @@ Confira aqui [Gerar mangás assinados no Union Mangás](pega-assinaturas-union)
 
 
 ## Projeto manga-anime 
-### Baixar manga no seu PC, selecione mangás aleatórios
+### Baixar mangas/animes no seu PC, selecione mangás/animes aleatórios
 Confira [Manga & Anime](manga-anime)

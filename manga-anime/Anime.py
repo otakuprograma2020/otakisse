@@ -5,7 +5,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.expected_conditions import presence_of_element_located, alert_is_present,element_to_be_clickable
-
+from unicodedata import normalize
+from progress.spinner import PieSpinner
 class Anime:
 
     def __init__(self, feature):
@@ -15,6 +16,7 @@ class Anime:
         self.saida_path = self.common.criarPasta('saida', self.dir_path)
         self.cwd = os.getcwd()
         self.common.clearTerminal()
+        self.animePasta = self.common.criarPasta('animes', self.dir_path)
         self.initUrl_hAnime = 'https://hanime.tv'
         self.initur_url_animes_house = 'https://animeshouse.net/'
         self.favHanime = ['3D', 'AHEGAO', 'ANAL', 'BIG BOOBS', 'BLOW JOB', 'BOOB JOB', 'CENSORED', 'COSPLAY', 'CREAMPIE', 'DARK SKIN', 'FACIAL', 'FANTASY', 'FILMED', 'FOOT JOB', 'GANGBANG', 'GLASSES', 'HAND JOB', 'HAREM', 'HD', 'INCEST', 'LACTATION',  'LOLI', 'MAID', 'MASTURBATION', 'MILF', 'MIND BREAK', 'MIND CONTROL', 'MONSTER', 'NEKOMIMI', 'NURSE', 'ORGY', 'POV', 'PREGNANT', 'PUBLIC SEX', 'RAPE', 'REVERSE RAPE', 'RIMJOB', 'SCHOOL GIRL', 'SHOTA', 'SOFTCORE', 'SWIMSUIT', 'TEACHER', 'THREESOME', 'TOYS', 'TSUNDERE',  'UNCENSORED', 'VANILLA', 'VIRGIN', 'WATERSPORTS', 'X-RAY', 'YURI']
@@ -105,6 +107,7 @@ class Anime:
             webbrowser.open(escolhido, new=0, autoraise=True)
         except Exception as err:
             print('ERRO (randomMH): {}'.format(err))
+    
     def randomHtube(self):
         url = ('https://www.hentaistube.com/lista-de-hentais-legendados/')
         self.comCensura_h_tube = {}
@@ -486,6 +489,31 @@ class Anime:
             elif(choice == 2):
                 self.getAllLinksToTxtHTube()
 
+    def baixar_yayanimes(self, url=''):
+        url = r'https://yayanimes.net/heya-camp△/'
+        site = self.common.soup(url=url)
+        dic_eps = {}
+        eps = site.find_all('a', class_='btn-online')
+        span = site.find('span',class_='color-change')
+        animeNome = ' '.join([x.strip() for x in re.findall(r'[\w\sà-ú\(\)\[\]\{\}\-\+\=\!@#$%ªº´`&\_§¬¢£~^°;,.\']*', span.text, flags=re.IGNORECASE) if x])
+        anime_pasta = self.common.criarPasta(animeNome,self.animePasta)
+        spinner = PieSpinner('Processando episódios ')
+        for ep in eps:
+            spinner.next()
+            site = self.common.soup(url=ep.get('href'))
+            video = site.find('video')
+            video_url = video.source.get('src')
+            span = site.find('span',class_='color-change')
+            nome = self.normalizeNameAnime(span.text)
+            dic_eps.update({nome:video_url})
+            spinner.next()
+        spinner.finish()
+        items = list(dic_eps.items())
+        items.reverse()
+        for c, v in items:
+            path_archiveName = os.path.join(anime_pasta, c)
+            self.common.downloadArchive(v, len(items), items.index((c,v)),path_archiveName)
+
     def animes_house_aleatorio(self):
         site = self.common.soup(url='https://animeshouse.net/anime/')
         next_pag = site.find('i', id='nextpagination')
@@ -507,10 +535,27 @@ class Anime:
         print('Abrindo {}'.format(r))
         webbrowser.open(dic_animes[r])
 
+    def normalizeNameAnime(self, animeNome):
+        try:
+            animeNome = animeNome.replace(':', '-')
+            animeNome = animeNome.replace('’', '\'')
+            animeNome = animeNome.replace('–', '')
+            animeNome = re.sub(r'[\\\/\:\*\?\"\<\>\|]+', '', animeNome)
+            animeNome = re.sub(r'[.]{2,}', '', animeNome)
+            animeNome = re.findall(r'[\w\sà-ú\(\)\[\]\{\}\-\+\=\!@#$%ªº´`&\_§¬¢£~^°;,.\']*', animeNome, flags=re.IGNORECASE)
+            animeNome = [x.strip() for x in animeNome if x]
+            animeNome = '_'.join(animeNome) #pylint: disable=anomalous-backslash-in-string
+            animeNome = animeNome.replace(' ', '_')
+            animeNome = animeNome.strip()
+            animeNome = normalize('NFKD', animeNome).encode('ASCII','ignore').decode('ASCII')
+            return animeNome
+        except Exception as err:
+            print('ERRO (normalizeNameManga): {}'.format(err))
+
     def animeMenu(self):
         choice = -2
         while choice:
-            print('0) VOLTAR\n1) para anime aleatório na web\n2) para H-anime aleatório na web\n4) para abrir todos os favoritos do hanime')
+            print('0) VOLTAR\n1) para anime aleatório na web\n2) para H-anime aleatório na web\n3) para baixar animes\n4) para abrir todos os favoritos do hanime')
             choice = ''
             while type(choice) != int:
                 try:
@@ -529,7 +574,7 @@ class Anime:
                 self.randomHAnimeWeb()
                 continue
             elif(choice == 3):
-                self.hAnimeTV()
+               self.baixar_yayanimes()
             elif(choice == 4):
                 self.openFavH_anime()
             elif(choice == 5):
@@ -540,24 +585,5 @@ class Anime:
                 
 
 if __name__ == "__main__":
-    c = Common()
-    site = c.soup(url='https://animeshouse.net/anime/')
-    next_pag = site.find('i', id='nextpagination')
-    arrow_pag =  next_pag.parent
-    dic_animes = {}
-    while next_pag:
-        archive_content = site.find('div', id='archive-content')
-        animes = archive_content.find_all('article')
-        for anime in animes:
-            h3 = anime.find('h3')
-            if h3:
-                if h3.a:
-                    dic_animes.update({h3.text: h3.a.get('href')})
-        site = c.soup(url=arrow_pag.get('href'))
-        next_pag = site.find('i', id='nextpagination')
-        if next_pag:
-            arrow_pag =  next_pag.parent
-    r =random.choice(list(dic_animes.keys()))
-    print('Abrindo {}'.format(r))
-    webbrowser.open(dic_animes[r])
-    print()
+    a = Anime('lxml')
+    a.baixar_yayanimes()

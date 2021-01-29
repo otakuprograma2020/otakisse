@@ -3,7 +3,7 @@ import requests, sys, rarfile, zipfile, re, json, shutil, base64
 from os import system, name, listdir, path, chmod, remove, mkdir, environ
 from time import time, ctime, sleep
 import selenium.webdriver.chrome.options as chromeOptions
-
+from progress.bar import ChargingBar
 class Common:
     def __init__(self, feature = None, saida_path=None):
         if(feature):
@@ -192,7 +192,7 @@ class Common:
             print("Unexpected error:", sys.exc_info()[0])
             raise
 
-    def downloadArchive(self, url, path_archiveName=None, op=None):  
+    def downloadArchive(self, url, total_files=1, file_atual=0,path_archiveName=None, op=None):  
         try:
             archiveName = path.basename(url.split("?")[0])
             response = requests.get(url, headers=self.headers, stream=True)
@@ -219,9 +219,14 @@ class Common:
                 path_archiveName = re.sub(r'\.[a-zA-Z0-9]+$', '.jpg',path_archiveName)
             if response.status_code == requests.codes.OK: #pylint: disable=no-member
                 response.raw.decode_content = True
+                chunks = [x for x in response]
+                bar = ChargingBar('Baixando',  suffix='%(percent).1f%% - %(eta)ds', max=len(chunks))
                 with open(path_archiveName, 'wb') as new_archive:
-                    for chunk in response:
+                    for chunk in chunks:
                         new_archive.write(chunk)
+                        bar.next()
+                        bar.write('\t\t\t\t\t\t[{}/{}]'.format(file_atual,total_files))
+                    bar.finish()
                 print("Download finalizado. Arquivo salvo em: {}".format(path_archiveName))
                 if op:
                     return path_archiveName

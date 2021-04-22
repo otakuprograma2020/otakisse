@@ -255,7 +255,7 @@ class Common:
                     return complete, False
                 return complete, False
             else:
-                print('Diretório {} existente'.format(complete))
+                # print('Diretório {} existente'.format(complete))
                 return complete
         except Exception as err:
             print('ERROR (criarPasta): {0}'.format(err))

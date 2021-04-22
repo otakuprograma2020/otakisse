@@ -12,6 +12,8 @@ from selenium.webdriver.support.expected_conditions import presence_of_element_l
 import selenium.webdriver.firefox.options as firefoxOptions
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support.select import Select
+from progress.spinner import PieSpinner
+from progress.bar import ChargingBar, IncrementalBar
 class Manga:
     
     def __init__(self, feature=None):
@@ -117,6 +119,8 @@ class Manga:
         self.path_H_manga_hs = os.path.join(self.path_H_manga, 'h-mangas links HS')
         self.path_H_manga_hc = os.path.join(self.path_H_manga, 'h-mangas links HC')
         self.path_H_manga_bh = os.path.join(self.path_H_manga, 'h-mangas links BH')
+        self.path_driver = os.path.join(self.dir_path, 'selenium', 'webdriver')
+        self.path_driver_chrome = os.path.join(self.path_driver, 'chromedriver')
         self.logDelete = os.path.join(self.saida_path, "logDeleteCaps.txt")
         self.arquivo_logMangasBaixados = os.path.join(self.saida_path, "logMangasBaixados.txt")
         self.logNotificacoes = os.path.join(self.saida_path, "logNotificacoes.txt")
@@ -706,7 +710,7 @@ class Manga:
             hentais = {'H-Mangás':[],'One-Shots':[],'Doujinshis':[], 'Hentais':[],'None':[]}
             links = []
             list_divs = []
-            driver = webdriver.Chrome(options=self.common.optionsChrome(headless=True))
+            driver = webdriver.Chrome(executable_path=self.path_driver_chrome, options=self.common.optionsChrome(headless=True))
             driver.get(url)
             for i in range(1, pages+1): 
                 print('Visitando página {}'.format(i))
@@ -1020,7 +1024,7 @@ class Manga:
                     return complete, False
                 return complete, False
             else:
-                print('Diretório {} existente'.format(complete))
+                # print('Diretório {} existente'.format(complete))
                 return complete, True
         except Exception as err:
             print('ERROR (criarPastaManga): {0}'.format(err))
@@ -3622,30 +3626,39 @@ class Manga:
         try:
             self.verificaMangasLogDelete()
             capsBaixados = []
+            spinner = PieSpinner('Obtendo informação do manga ...')
+            spinner.next()
             with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
                 self.common.clearTerminal()
                 print('='*8+'Tsuki Mangas'+'='*8)
-                print("Obtendo informação do manga ...")
+                spinner.next()
                 driver.get(url)
+                spinner.next()
                 time.sleep(2)
+                spinner.next()
                 SCROLL_PAUSE_TIME = 0.5
-
+                spinner.next()
                 # Get scroll height
                 last_height = driver.execute_script("return document.body.scrollHeight")
-
+                spinner.next()
                 while True:
                     # Scroll down to bottom
                     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    spinner.next()
 
                     # Wait to load page
                     time.sleep(SCROLL_PAUSE_TIME)
-
+                    spinner.next()
                     # Calculate new scroll height and compare with last scroll height
                     new_height = driver.execute_script("return document.body.scrollHeight")
+                    spinner.next()
                     if new_height == last_height:
                         break
                     last_height = new_height
+                    spinner.next()
                 html = driver.page_source
+                spinner.next()
+            spinner.finish()
             site = self.common.soup(markup=html)
             mangaNome = site.find('h2').text
             mangaNome = self.normalizeNameManga(mangaNome)
@@ -3716,10 +3729,13 @@ class Manga:
                     else:
                         print('Capítulo não encontrado')
                 elif(not cap_i and not cap_f):
+                    bar = IncrementalBar('Baixando', max=len(caps_values))
                     for c in caps_values:
+                        bar.next()
                         capBaixado = self.baixarCapTsukiMangas(c)
                         if(capBaixado):
                             capsBaixados.append(capBaixado)
+                            # bar.write('\t\t\t\t\t\t[{}/{}]'.format(file_atual+1,len()))
                 self.logMangasBaixados('Tsuki Mangás', mangaNome, capsBaixados)
                 print('{} capítulo(s) baixado(s)'.format(len(capsBaixados)))
             print()
@@ -3729,22 +3745,32 @@ class Manga:
     def baixarCapTsukiMangas(self, url):
         try:
             tsuki_pasta = self.criarPastaManga('Tsuki Mangas', self.mangaPasta)[0]
-            with webdriver.Chrome(options=self.common.optionsChrome(True)) as driver:
+            spinner = PieSpinner('Obtendo informação do capítulo ...')
+            spinner.next()
+            with webdriver.Chrome(options=self.common.optionsChrome()) as driver:
                 self.common.clearTerminal()
                 print('='*8+'Tsuki Mangas'+'='*8)
-                print('Obtendo informações do capítulo ...')
+                spinner.next()
                 wait = WebDriverWait(driver, 10)
+                spinner.next()
                 driver.get(url)
+                spinner.next()
                 elmnt = wait.until(presence_of_element_located((By.CLASS_NAME, 'bblc')))
+                spinner.next()
                 select = elmnt.find_element_by_tag_name('select')
+                spinner.next()
                 all_options = select.find_elements_by_tag_name('option')
+                spinner.next()
                 for option in all_options:
+                    spinner.next()
                     if(re.search('Páginas abertas', option.text)):
                         option.click()
                         time.sleep(3)
                         html = driver.page_source
                         break
                 html = driver.page_source
+                spinner.next()
+            spinner.finish()
             site = self.common.soup(markup=html)
             id_cap = re.search(r'([0-9]+\-?)(\s){0,0}([\.0-9]+)?', site.find('b', class_='f14c').text)
             mangaName = site.find('b', class_='f20').text
@@ -4661,12 +4687,12 @@ class Manga:
                 #         x += 1
                 if(i.get('data-src')):
                     src = re.sub('[\n\t]', '',i.get('data-src'))
-                    self.common.downloadArchive(src.strip(), directory_complete)
+                    self.common.downloadArchive(url=src.strip(), path_archiveName=directory_complete, total_files=len(imgs), file_atual=imgs.index(i))
                 elif(i.get('src')):
                     src = re.sub('[\n\t]', '',i.get('src'))
                     if(re.match(self.regex_urlWEB, src) is not None):
                         print()
-                        self.common.downloadArchive(src, directory_complete)
+                        self.common.downloadArchive(url=src, path_archiveName=directory_complete, total_files=len(imgs), file_atual=imgs.index(i))
                     else:
                         print('URL {} INVÁLIDA'.format(src))
                 else:

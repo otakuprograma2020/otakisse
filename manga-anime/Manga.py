@@ -1510,14 +1510,14 @@ class Manga:
                     manga, cap, imgs = self.getMangaCapImgs(url, driver)
                     self.baixarUmCapHS(manga, cap, imgs, artista)
                 else:
-                    print('{} está em completados.txt'.format(manga))
+                    print('Já está em completados.txt')
             elif(op == 2):
                 if(url not in self.completados):
                     manga, cap, imgs = self.getMangaCapImgs(url, driver)
                     if(imgs):
                         self.baixarMangaInteiroHS(manga,cap, imgs, driver, artista)
                 else:
-                    print('{} está em completados.txt'.format(manga))
+                    print('Já está em completados.txt')
             elif(op == 3):
                 site = self.common.soup(url=url)
                 ul = site.find('ul', class_='paginacao')

@@ -635,33 +635,43 @@ class Manga:
             os.system('pause')
 
     def verifyHomeHManga(self, op):
-        choice = -1
+        choice = float('inf')
         self.common.clearTerminal()
         while True:
             try:
                 t_0 = self.common.initCountTime()
-                pages = int(self.common.readString('Digite a quantidade de página ser verificada: '))
-                if(pages == -1):
-                    self.common.shutDown()
-                elif(pages == 0):
-                    break
-                print('1 - para HiperCool\n2 - para Hentai Season\n3 - para BH')
+                print('VERIFICAR HOME DE SITE')
+                print('1 - para HiperCool\n2 - para Hentai Season\n3 - para BH')                    
                 choice = int(self.common.readString())
                 if(choice == 0):
-                    continue
+                    break
                 elif(choice == -1):
                     self.common.shutDown()
-                elif(choice == 1):
+                print(' 1) verificar todas as páginas\n 2) digitar quantidade de páginas a ser verificadas\n 0) voltar\n-1) sair')
+                choice_ = int(self.common.readString())
+                if choice_ == -1:
+                    self.common.shutDown()
+                elif choice_ == 0:
+                    continue
+                elif choice_ == 2:
+                    pages = int(self.common.readString('Digite a quantidade de página ser verificada: '))
+                elif choice_ == 1:
+                    pages = float('inf')
+                
+                if(choice == 1):
+                    # print('HiperCool')
                     choice2 = self.common.readString('Deseja gerar arquivo de artista?\n=>')
                     url = self.initURLHC + '/home'
                     self.verifyHomeHC(pages, url, op, choice2)
                     self.finishinMusic()
                 elif(choice == 2):
+                    # print('Hentai Season')
                     url = self.initURLHS + '/page'
                     choice2 = self.common.readString('Deseja gerar arquivo de artista?\n=>')
                     self.verifyHomeHS(pages, url, op, choice2)
                     self.finishinMusic()
                 elif(choice == 3):
+                    # print('Baixar Hentai')
                     url = self.initURLBH + '/inicio'
                     self.verifyHomeBH(pages, url)
                     self.finishinMusic()
@@ -924,6 +934,22 @@ class Manga:
         try:
             artistas = {}
             t_o = self.common.initCountTime()
+            if pages == float('inf'):
+                site = self.common.soup(feature="html.parser", url=self.initURLHC)
+                while True:
+
+                    elements = site.find_all('a', class_='button')
+                    # print(elements[-1]['href'].split('/')[-1])
+                    site = self.common.soup(feature="html.parser", url =self.initURLHC+'/'+elements[-1]['href'])
+                    classes = ['button', 'nuxt-link-exact-active', 'nuxt-link-active']
+                    if 'nuxt-link-exact-active' in elements[-1]['class']:
+                        print("FIM")
+                        pages = int(elements[-1]['href'].split('/')[-1])
+                        break
+                t_f = self.common.finishCountTime(t_o)
+                segundos = t_f % 60
+                minutos  = int(t_f / 60)
+                print('Executado em {} minutos e {} segundos'.format(minutos, segundos))
             for i in range(1, pages + 1):
                 site = self.common.soup(self.feature, '{}/{}'.format(url,i))
                 print('Visitando página {}'.format(i))
@@ -6027,13 +6053,14 @@ class Manga:
                         self.unzipInPath(pasta)
                 elif(choice == 12):
                     try:
-                        print('1 - para novos\n2 - para todos\n0 para voltar')
-                        choice_ = int(self.common.readString())
-                        if(choice_ == -1):
-                            self.common.shutDown()
-                        elif(choice_ == 0):
-                            continue
-                        self.verifyHomeHManga(choice_) 
+                        while True:
+                            print('1 - para novos\n2 - para todos\n0 para voltar')
+                            choice_ = int(self.common.readString())
+                            if(choice_ == -1):
+                                self.common.shutDown()
+                            elif(choice_ == 0):
+                                break
+                            self.verifyHomeHManga(choice_)
                     except Exception as err:
                         print('Error choice 11: {0}'.format(err))
                         os.system('pause')
@@ -6139,4 +6166,4 @@ class Manga:
 
 if __name__ == "__main__":
     manga = Manga()
-    manga.getMangaNewCapUnion()
+    manga.verifyHomeHC(float('inf'),"https://hiper.cool", 2, 0)
